@@ -6,8 +6,9 @@ import { Category, TaskStatus, Project, XpTask } from '../types';
 import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../components/ui';
 import { format, addDays } from 'date-fns';
 import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw } from 'lucide-react';
-import { THEME_STYLES, ICON_MAP } from '../constants';
+import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks } from '../services/ai';
+import { getISOWeek } from 'date-fns';
 
 interface SuggestedTaskState {
     title: string;
@@ -57,6 +58,13 @@ export const CategoryPage = () => {
     const miniTaskDone = !!todayCheckIn?.miniTaskDone;
     const shieldedToday = !!todayCheckIn?.isShield;
     const doneByXp = todayCheckIn?.source === 'xp';
+
+    // Weekly Quote Logic
+    const quoteCategory = getQuoteCategory(decodedCategory);
+    const quotes = CATEGORY_QUOTES[quoteCategory] || CATEGORY_QUOTES['General'];
+    const currentWeek = getISOWeek(today);
+    const quoteIndex = currentWeek % quotes.length;
+    const weeklyQuote = quotes[quoteIndex];
 
     const getHistory = () => {
         const history = [];
@@ -175,7 +183,7 @@ export const CategoryPage = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-slate-800">{categoryDef.name}</h1>
-                        <p className="text-slate-500 text-sm">Category Dashboard</p>
+                        <p className="text-slate-500 text-sm italic mt-1 max-w-md">"{weeklyQuote}"</p>
                     </div>
                 </div>
 

@@ -34,18 +34,49 @@ export const THEME_STYLES: Record<string, string> = {
   'lime': 'bg-lime-50 text-lime-700 border-lime-200 hover:bg-lime-100',
 };
 
-export const QUOTES = [
-  "Small steps every day lead to giant leaps over time.",
-  "Consistency is what transforms average into excellence.",
-  "You don't have to be great to start, but you have to start to be great.",
-  "Success is the sum of small efforts, repeated day in and day out.",
-  "The secret of your future is hidden in your daily routine.",
-  "Don't watch the clock; do what it does. Keep going.",
-  "Energy flows where intention goes.",
-  "Your only limit is your mind.",
-  "Dream big. Start small. Act now.",
-  "Discipline is choosing between what you want now and what you want most."
-];
+export const CATEGORY_QUOTES: Record<string, string[]> = {
+  'Science': [
+    "The important thing is not to stop questioning. Curiosity has its own reason for existing. - Albert Einstein",
+    "Somewhere, something incredible is waiting to be known. - Carl Sagan",
+    "Research is seeing what everybody else has seen and thinking what nobody else has thought. - Albert Szent-Györgyi",
+    "Nothing in life is to be feared, it is only to be understood. - Marie Curie",
+    "The good thing about science is that it's true whether or not you believe in it. - Neil deGrasse Tyson"
+  ],
+  'Business': [
+    "Opportunities don't happen. You create them. - Chris Grosser",
+    "Success usually comes to those who are too busy to be looking for it. - Henry David Thoreau",
+    "The only way to do great work is to love what you do. - Steve Jobs",
+    "Don't be afraid to give up the good to go for the great. - John D. Rockefeller",
+    "Success is not final; failure is not fatal: It is the courage to continue that counts. - Winston Churchill"
+  ],
+  'Home': [
+    "The magic thing about home is that it feels good to leave, and it feels even better to come back.",
+    "Home is not a place…it’s a feeling.",
+    "Enjoy the little things, for one day you may look back and realize they were the big things. - Robert Brault",
+    "Happiness is homemade.",
+    "The most important work you will ever do will be within the walls of your own home. - Harold B. Lee"
+  ],
+  'General': [
+    "Small steps every day lead to giant leaps over time.",
+    "Consistency is what transforms average into excellence.",
+    "You don't have to be great to start, but you have to start to be great.",
+    "Success is the sum of small efforts, repeated day in and day out.",
+    "The secret of your future is hidden in your daily routine.",
+    "Don't watch the clock; do what it does. Keep going.",
+    "Energy flows where intention goes.",
+    "Your only limit is your mind.",
+    "Dream big. Start small. Act now.",
+    "Discipline is choosing between what you want now and what you want most."
+  ]
+};
+
+// Helper to map category ID to quote type
+export const getQuoteCategory = (id: string): string => {
+  if (['Ophthalmology', 'Research', 'Physics'].includes(id)) return 'Science';
+  if (['Clinic & Business', 'Finance', 'Admin'].includes(id)) return 'Business';
+  if (['Health', 'Family & Baby', 'Household & Home', 'Languages'].includes(id)) return 'Home';
+  return 'General';
+};
 
 export const REWARD_COMPLIMENTS = [
   "Unstoppable!",
