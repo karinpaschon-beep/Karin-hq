@@ -1,15 +1,15 @@
 
 import { AppState, CategoryDef } from './types';
 import { format } from 'date-fns';
-import { 
-  Eye, BookOpen, Atom, Briefcase, TrendingUp, 
+import {
+  Eye, BookOpen, Atom, Briefcase, TrendingUp,
   FileText, Heart, Baby, Languages, Home,
   Star, Music, Code, PenTool, Coffee, Zap
 } from 'lucide-react';
 
 // Icon Map for dynamic lookup
 export const ICON_MAP: Record<string, any> = {
-  Eye, BookOpen, Atom, Briefcase, TrendingUp, 
+  Eye, BookOpen, Atom, Briefcase, TrendingUp,
   FileText, Heart, Baby, Languages, Home,
   Star, Music, Code, PenTool, Coffee, Zap
 };
@@ -48,25 +48,25 @@ export const QUOTES = [
 ];
 
 export const REWARD_COMPLIMENTS = [
-    "Unstoppable!",
-    "Crushing It!",
-    "On Fire!",
-    "Magnificent!",
-    "Spectacular!",
-    "Legendary!",
-    "Divine!",
-    "Excellent!",
-    "Bravo!",
-    "Keep it up!",
-    "Momentum!",
-    "Victory!"
+  "Unstoppable!",
+  "Crushing It!",
+  "On Fire!",
+  "Magnificent!",
+  "Spectacular!",
+  "Legendary!",
+  "Divine!",
+  "Excellent!",
+  "Bravo!",
+  "Keep it up!",
+  "Momentum!",
+  "Victory!"
 ];
 
 export const EMOJI_SETS = {
-    streak: ['🔥', '⚡', '🚀', '🧨', '🎆'],
-    xp: ['💎', '✨', '🌟', '💰', '🔮', '🧬'],
-    shield: ['🛡️', '💪', '🧱', '🏰'],
-    party: ['🎉', '🎊', '🎈', '🥳']
+  streak: ['🔥', '⚡', '🚀', '🧨', '🎆'],
+  xp: ['💎', '✨', '🌟', '💰', '🔮', '🧬'],
+  shield: ['🛡️', '💪', '🧱', '🏰'],
+  party: ['🎉', '🎊', '🎈', '🥳']
 };
 
 export const DEFAULT_MINI_TASKS: Record<string, string> = {
@@ -91,16 +91,16 @@ export const INITIAL_SETTINGS = {
 
 // Initial Categories for Seed
 const INITIAL_CATEGORIES: CategoryDef[] = [
-  { id: 'Ophthalmology', name: 'Ophthalmology', icon: 'Eye', colorTheme: 'blue' },
-  { id: 'Research', name: 'Research', icon: 'BookOpen', colorTheme: 'purple' },
-  { id: 'Physics', name: 'Physics', icon: 'Atom', colorTheme: 'indigo' },
-  { id: 'Clinic & Business', name: 'Clinic & Business', icon: 'Briefcase', colorTheme: 'teal' },
-  { id: 'Finance', name: 'Finance', icon: 'TrendingUp', colorTheme: 'emerald' },
-  { id: 'Admin', name: 'Admin', icon: 'FileText', colorTheme: 'slate' },
-  { id: 'Health', name: 'Health', icon: 'Heart', colorTheme: 'rose' },
-  { id: 'Family & Baby', name: 'Family & Baby', icon: 'Baby', colorTheme: 'orange' },
-  { id: 'Languages', name: 'Languages', icon: 'Languages', colorTheme: 'pink' },
-  { id: 'Household & Home', name: 'Household & Home', icon: 'Home', colorTheme: 'cyan' },
+  { id: 'Ophthalmology', name: 'Ophthalmology', icon: 'Eye', colorTheme: 'blue', backgroundImage: '/bg-science.png' },
+  { id: 'Research', name: 'Research', icon: 'BookOpen', colorTheme: 'purple', backgroundImage: '/bg-science.png' },
+  { id: 'Physics', name: 'Physics', icon: 'Atom', colorTheme: 'indigo', backgroundImage: '/bg-science.png' },
+  { id: 'Clinic & Business', name: 'Clinic & Business', icon: 'Briefcase', colorTheme: 'teal', backgroundImage: '/bg-office.png' },
+  { id: 'Finance', name: 'Finance', icon: 'TrendingUp', colorTheme: 'emerald', backgroundImage: '/bg-office.png' },
+  { id: 'Admin', name: 'Admin', icon: 'FileText', colorTheme: 'slate', backgroundImage: '/bg-office.png' },
+  { id: 'Health', name: 'Health', icon: 'Heart', colorTheme: 'rose', backgroundImage: '/bg-home.png' },
+  { id: 'Family & Baby', name: 'Family & Baby', icon: 'Baby', colorTheme: 'orange', backgroundImage: '/bg-home.png' },
+  { id: 'Languages', name: 'Languages', icon: 'Languages', colorTheme: 'pink', backgroundImage: '/bg-home.png' },
+  { id: 'Household & Home', name: 'Household & Home', icon: 'Home', colorTheme: 'cyan', backgroundImage: '/bg-home.png' },
 ];
 
 // Seed generator function
@@ -108,7 +108,7 @@ export const generateSeedData = (): AppState => {
   const today = new Date();
   const todayISO = format(today, 'yyyy-MM-dd');
   const currentMonth = format(today, 'yyyy-MM');
-  
+
   // Initialize shields
   const initialShields: Record<string, number> = {};
   INITIAL_CATEGORIES.forEach(c => initialShields[c.id] = 2);

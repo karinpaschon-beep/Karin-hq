@@ -6,6 +6,7 @@ export interface CategoryDef {
   name: string;
   icon?: string; // Icon name from Lucide
   colorTheme: string; // key of CATEGORY_STYLES
+  backgroundImage?: string; // Path to background image
 }
 
 export interface StreakCheckIn {
