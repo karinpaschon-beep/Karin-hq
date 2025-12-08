@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useApp } from '../services/StateContext';
-import { Card, Button, Input, Select, Badge } from '../components/ui';
+import { Card, Button, Input, Select, Badge, Textarea } from '../components/ui';
 import { Category } from '../types';
 import { Download, Upload, AlertTriangle, Check, Plus, Trash2, Edit2, Save, X, LogOut, User } from 'lucide-react';
 import { supabase } from '../services/supabase';
@@ -69,7 +69,7 @@ export const SettingsPage = () => {
             ...settings,
             defaultMiniTasksByCategory: {
                 ...settings.defaultMiniTasksByCategory,
-                [cat]: val
+                [cat]: val.split('\n')
             }
         });
     };
@@ -197,10 +197,11 @@ export const SettingsPage = () => {
                     {categories.map(cat => (
                         <div key={cat.id}>
                             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{cat.name}</label>
-                            <Input
-                                value={settings.defaultMiniTasksByCategory[cat.id] || ''}
+                            <Textarea
+                                value={(settings.defaultMiniTasksByCategory[cat.id] || []).join('\n')}
                                 onChange={(e) => updateMiniTask(cat.id, e.target.value)}
-                                placeholder={`Set default mini task for ${cat.name}`}
+                                placeholder={`Set default mini tasks for ${cat.name} (one per line)`}
+                                className="min-h-[80px]"
                             />
                         </div>
                     ))}

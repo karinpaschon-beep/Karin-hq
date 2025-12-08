@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, AppContextType, Category, StreakCheckIn, XpTask, RewardLedgerEntry, Settings, Notification, Project, CategoryDef } from '../types';
-import { generateSeedData, INITIAL_SETTINGS, COLOR_THEMES, REWARD_COMPLIMENTS, EMOJI_SETS } from '../constants';
+import { generateSeedData, INITIAL_SETTINGS, COLOR_THEMES, REWARD_COMPLIMENTS, EMOJI_SETS, DEFAULT_MINI_TASKS } from '../constants';
 import { format, eachDayOfInterval, addDays } from 'date-fns';
 import { suggestProjectTasks } from './ai';
 import { supabase, loadStateFromCloud, saveStateToCloud } from './supabase';
@@ -144,8 +144,29 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             const miniTasks = migrated.settings.defaultMiniTasksByCategory;
             for (const key in miniTasks) {
                 if (typeof miniTasks[key] === 'string') {
-                    // @ts-ignore - migration logic
-                    miniTasks[key] = [miniTasks[key]];
+                    // Check if it matches the OLD default for a standard category
+                    // If so, update to the NEW default list
+                    const oldDefault = DEFAULT_MINI_TASKS[key]; // This is now an array in constants, but we need to check against old string
+                    // Actually, simpler: if it's a string, make it an array. 
+                    // THEN, if it's a standard category and the array has 1 item which is the old default, replace it?
+                    // Let's just say: if it's a string, wrap it.
+                    // BUT the user wants the new defaults.
+                    // So: if it's a string, AND it matches a known old default string, replace with new default.
+                    // Otherwise, just wrap it.
+
+                    const val = miniTasks[key];
+                    // Hardcoded check for old defaults to upgrade them
+                    if (key === 'Ophthalmology' && val.includes('Read 1 page OR')) miniTasks[key] = DEFAULT_MINI_TASKS['Ophthalmology'];
+                    else if (key === 'Research' && val.includes('Write 1 sentence OR')) miniTasks[key] = DEFAULT_MINI_TASKS['Research'];
+                    else if (key === 'Physics' && val.includes('Review 1 formula +')) miniTasks[key] = DEFAULT_MINI_TASKS['Physics'];
+                    else if (key === 'Clinic & Business' && val.includes('Add 1 clinic idea')) miniTasks[key] = DEFAULT_MINI_TASKS['Clinic & Business'];
+                    else if (key === 'Finance' && val.includes('Check balance/portfolio +')) miniTasks[key] = DEFAULT_MINI_TASKS['Finance'];
+                    else if (key === 'Admin' && val.includes('Send 1 message/email OR')) miniTasks[key] = DEFAULT_MINI_TASKS['Admin'];
+                    else if (key === 'Health' && val.includes('2 min mobility OR')) miniTasks[key] = DEFAULT_MINI_TASKS['Health'];
+                    else if (key === 'Family & Baby' && val.includes('5 mins present')) miniTasks[key] = DEFAULT_MINI_TASKS['Family & Baby'];
+                    else if (key === 'Languages' && val.includes('5 min Lingoda/')) miniTasks[key] = DEFAULT_MINI_TASKS['Languages'];
+                    else if (key === 'Household & Home' && val.includes('10-min reset')) miniTasks[key] = DEFAULT_MINI_TASKS['Household & Home'];
+                    else miniTasks[key] = [val];
                 }
             }
         }
