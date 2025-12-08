@@ -133,7 +133,9 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 ...t,
                 status: t.status || 'Backlog',
                 dateISO: t.dateISO || undefined,
-                projectId: t.projectId || undefined
+                projectId: t.projectId || undefined,
+                repeatable: t.repeatable || false,
+                lastCompletedDateISO: t.lastCompletedDateISO || undefined
             }));
         }
 
@@ -205,6 +207,26 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
             if (newState.lastVisitDate !== todayISO) {
                 newState.lastVisitDate = todayISO;
+                stateChanged = true;
+            }
+
+            // 3. Reset Repeatable Tasks
+            // If a repeatable task is done, but lastCompletedDateISO is NOT today, reset it.
+            const tasksReset = newState.tasks.map(t => {
+                if (t.repeatable && t.done && t.lastCompletedDateISO !== todayISO) {
+                    return {
+                        ...t,
+                        done: false,
+                        status: 'Today', // Bring it back to Today
+                        dateISO: undefined
+                    } as XpTask;
+                }
+                return t;
+            });
+
+            // Check if tasks changed
+            if (JSON.stringify(tasksReset) !== JSON.stringify(newState.tasks)) {
+                newState.tasks = tasksReset;
                 stateChanged = true;
             }
 
@@ -530,6 +552,16 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
             const newTasks = prev.tasks.map(t => {
                 if (t.id === id) {
+                    if (t.repeatable && isDone) {
+                        return {
+                            ...t,
+                            done: true,
+                            status: 'Done',
+                            dateISO: todayISO,
+                            lastCompletedDateISO: todayISO
+                        } as XpTask;
+                    }
+
                     return {
                         ...t,
                         done: isDone,

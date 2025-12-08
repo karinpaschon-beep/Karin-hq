@@ -40,6 +40,8 @@ export interface XpTask {
   done: boolean;
   dateISO?: string; // Optional: Only set when Done, or if specifically scheduled
   notes?: string;
+  repeatable?: boolean;
+  lastCompletedDateISO?: string;
 }
 
 export type LedgerSource = 'xp_post' | 'manual';
