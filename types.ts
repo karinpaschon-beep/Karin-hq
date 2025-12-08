@@ -61,7 +61,7 @@ export interface Settings {
   xpToEuroRate: number;
   spendGateEnabled: boolean;
   spendGateThreshold: number;
-  defaultMiniTasksByCategory: Record<Category, string>;
+  defaultMiniTasksByCategory: Record<Category, string[]>;
 }
 
 export interface AppState {

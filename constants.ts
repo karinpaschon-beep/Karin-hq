@@ -100,17 +100,17 @@ export const EMOJI_SETS = {
   party: ['🎉', '🎊', '🎈', '🥳']
 };
 
-export const DEFAULT_MINI_TASKS: Record<string, string> = {
-  'Ophthalmology': 'Read 1 page OR write 3 bullets from oculoplastics/cataract',
-  'Research': 'Write 1 sentence OR fix 1 reference',
-  'Physics': 'Review 1 formula + 1 worked mini-step',
-  'Clinic & Business': 'Add 1 clinic idea (service/workflow/pricing/tech)',
-  'Finance': 'Check balance/portfolio + write 1 next-step line',
-  'Admin': 'Send 1 message/email OR file 1 document',
-  'Health': '2 min mobility OR 10 squats + stretch',
-  'Family & Baby': '5 mins present (no phone) + memory note',
-  'Languages': '5 min Lingoda/Écoute/French page',
-  'Household & Home': '10-min reset (one surface/drawer/laundry)',
+export const DEFAULT_MINI_TASKS: Record<string, string[]> = {
+  'Ophthalmology': ['Read 1 page', 'Write 3 bullets from oculoplastics/cataract'],
+  'Research': ['Write 1 sentence', 'Fix 1 reference'],
+  'Physics': ['Review 1 formula', 'Do 1 worked mini-step'],
+  'Clinic & Business': ['Add 1 clinic idea (service/workflow)', 'Review pricing', 'Check tech setup'],
+  'Finance': ['Check balance/portfolio', 'Write 1 next-step line'],
+  'Admin': ['Send 1 message/email', 'File 1 document'],
+  'Health': ['2 min mobility', '10 squats', 'Stretch'],
+  'Family & Baby': ['5 mins present (no phone)', 'Write memory note'],
+  'Languages': ['5 min Lingoda', 'Listen to Écoute', 'Read 1 French page'],
+  'Household & Home': ['10-min reset', 'Clean one surface', 'Organize one drawer', 'Start laundry'],
 };
 
 export const INITIAL_SETTINGS = {

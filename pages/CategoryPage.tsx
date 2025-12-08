@@ -209,21 +209,44 @@ export const CategoryPage = () => {
                         </h2>
 
                         <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm mb-6 transition-all hover:shadow-md">
-                            <p className="text-sm text-slate-600 mb-3 font-medium">Mini Task:</p>
-                            <p className="text-slate-800 italic mb-4 text-center text-lg leading-relaxed">"{settings.defaultMiniTasksByCategory[decodedCategory] || "Do a small task"}"</p>
-                            <Button
-                                className={cn("w-full transition-all duration-300 active:scale-95", miniTaskDone ? "bg-green-600 hover:bg-green-700 shadow-green-200" : "")}
-                                variant={miniTaskDone ? "primary" : "outline"}
-                                onClick={() => toggleMiniTask(decodedCategory, todayISO)}
-                            >
-                                {miniTaskDone ? (
-                                    <span className="flex items-center gap-2 animate-in zoom-in spin-in-12">
-                                        <CheckCircle2 /> {doneByXp ? "Done (XP Task)" : "Done for today"}
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center gap-2"><Circle /> Mark Mini Done</span>
-                                )}
-                            </Button>
+                            <p className="text-sm text-slate-600 mb-3 font-medium">Daily Mini Task:</p>
+
+                            {miniTaskDone ? (
+                                <div className="text-center">
+                                    <div className="text-xs text-slate-500 mb-4 h-8 overflow-hidden">
+                                        {(settings.defaultMiniTasksByCategory[decodedCategory] || []).length} options available
+                                    </div>
+                                    <Button
+                                        className="w-full bg-green-600 hover:bg-green-700 shadow-green-200 transition-all duration-300 active:scale-95"
+                                        variant="primary"
+                                        onClick={() => toggleMiniTask(decodedCategory, todayISO)}
+                                    >
+                                        <span className="flex items-center gap-2 animate-in zoom-in spin-in-12">
+                                            <CheckCircle2 /> {doneByXp ? "Done (XP Task)" : "Done for today"}
+                                        </span>
+                                    </Button>
+                                    <p className="text-xs text-slate-400 mt-2 cursor-pointer hover:text-slate-600" onClick={() => toggleMiniTask(decodedCategory, todayISO)}>
+                                        (Click to undo)
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {(settings.defaultMiniTasksByCategory[decodedCategory] || ['Do one small thing']).map((taskOption, idx) => (
+                                        <Button
+                                            key={idx}
+                                            className="w-full justify-start text-left h-auto py-3 px-4 whitespace-normal"
+                                            variant="outline"
+                                            onClick={() => toggleMiniTask(decodedCategory, todayISO, taskOption)}
+                                        >
+                                            <span className="flex items-start gap-3">
+                                                <Circle className="mt-0.5 flex-shrink-0 text-slate-300" size={18} />
+                                                <span className="text-slate-700">{taskOption}</span>
+                                            </span>
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
+
                             {shieldedToday && <p className="text-xs text-center text-slate-500 mt-2 flex items-center justify-center gap-1"><Shield size={12} /> Streak maintained by shield</p>}
                         </div>
 

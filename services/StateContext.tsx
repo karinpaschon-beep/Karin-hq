@@ -139,6 +139,17 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             }));
         }
 
+        // Migrate mini-tasks to array if they are strings
+        if (migrated.settings && migrated.settings.defaultMiniTasksByCategory) {
+            const miniTasks = migrated.settings.defaultMiniTasksByCategory;
+            for (const key in miniTasks) {
+                if (typeof miniTasks[key] === 'string') {
+                    // @ts-ignore - migration logic
+                    miniTasks[key] = [miniTasks[key]];
+                }
+            }
+        }
+
         return {
             ...migrated,
             settings: { ...INITIAL_SETTINGS, ...migrated.settings }
@@ -374,10 +385,8 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             shields: { ...prev.shields, [id]: 2 },
             settings: {
                 ...prev.settings,
-                defaultMiniTasksByCategory: {
-                    ...prev.settings.defaultMiniTasksByCategory,
-                    [id]: 'Do one small thing for this category'
-                }
+                ...prev.settings.defaultMiniTasksByCategory,
+                [id]: ['Do one small thing for this category']
             }
         }));
         addNotification(`Category ${name} created`);
