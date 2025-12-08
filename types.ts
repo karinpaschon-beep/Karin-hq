@@ -41,7 +41,7 @@ export interface XpTask {
   done: boolean;
   dateISO?: string; // Optional: Only set when Done, or if specifically scheduled
   notes?: string;
-  repeatable?: boolean;
+  repeatFrequency?: 'daily' | 'weekly';
   lastCompletedDateISO?: string;
 }
 

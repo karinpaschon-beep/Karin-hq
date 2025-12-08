@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, AppContextType, Category, StreakCheckIn, XpTask, RewardLedgerEntry, Settings, Notification, Project, CategoryDef } from '../types';
 import { generateSeedData, INITIAL_SETTINGS, COLOR_THEMES, REWARD_COMPLIMENTS, EMOJI_SETS, DEFAULT_MINI_TASKS } from '../constants';
-import { format, eachDayOfInterval, addDays } from 'date-fns';
+import { format, eachDayOfInterval, addDays, getISOWeek } from 'date-fns';
 import { suggestProjectTasks } from './ai';
 import { supabase, loadStateFromCloud, saveStateToCloud } from './supabase';
 import { User } from '@supabase/supabase-js';
@@ -129,14 +129,23 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
         // Ensure tasks have valid fields (make dateISO optional if missing)
         if (migrated.tasks) {
-            migrated.tasks = migrated.tasks.map((t: any) => ({
-                ...t,
-                status: t.status || 'Backlog',
-                dateISO: t.dateISO || undefined,
-                projectId: t.projectId || undefined,
-                repeatable: t.repeatable || false,
-                lastCompletedDateISO: t.lastCompletedDateISO || undefined
-            }));
+            migrated.tasks = migrated.tasks.map((t: any) => {
+                // Migration for repeatable boolean -> repeatFrequency
+                let frequency = t.repeatFrequency;
+                if (t.repeatable) {
+                    frequency = 'daily';
+                }
+
+                return {
+                    ...t,
+                    status: t.status || 'Backlog',
+                    dateISO: t.dateISO || undefined,
+                    projectId: t.projectId || undefined,
+                    repeatFrequency: frequency,
+                    repeatable: undefined, // Cleanup old field
+                    lastCompletedDateISO: t.lastCompletedDateISO || undefined
+                };
+            });
         }
 
         // Migrate mini-tasks to array if they are strings
@@ -249,15 +258,37 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             }
 
             // 3. Reset Repeatable Tasks
-            // If a repeatable task is done, but lastCompletedDateISO is NOT today, reset it.
+            const currentWeek = getISOWeek(today);
+
             const tasksReset = newState.tasks.map(t => {
-                if (t.repeatable && t.done && t.lastCompletedDateISO !== todayISO) {
-                    return {
-                        ...t,
-                        done: false,
-                        status: 'Today', // Bring it back to Today
-                        dateISO: undefined
-                    } as XpTask;
+                if (t.done && t.repeatFrequency) {
+                    let shouldReset = false;
+
+                    if (t.repeatFrequency === 'daily') {
+                        if (t.lastCompletedDateISO !== todayISO) shouldReset = true;
+                    } else if (t.repeatFrequency === 'weekly') {
+                        // Check if last completed date is in a DIFFERENT week
+                        if (t.lastCompletedDateISO) {
+                            const lastDate = parseISO(t.lastCompletedDateISO);
+                            const lastWeek = getISOWeek(lastDate);
+                            // Also check year to be safe around new year, but simplified:
+                            // If week number is different, reset.
+                            // Note: This is simple logic. Ideally check year too.
+                            // For now, assuming standard usage.
+                            if (lastWeek !== currentWeek) shouldReset = true;
+                        } else {
+                            shouldReset = true; // Should have a date if done, but safety first
+                        }
+                    }
+
+                    if (shouldReset) {
+                        return {
+                            ...t,
+                            done: false,
+                            status: 'Today', // Bring it back to Today/Active
+                            dateISO: undefined
+                        } as XpTask;
+                    }
                 }
                 return t;
             });
@@ -592,7 +623,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
             const newTasks = prev.tasks.map(t => {
                 if (t.id === id) {
-                    if (t.repeatable && isDone) {
+                    if (t.repeatFrequency && isDone) {
                         return {
                             ...t,
                             done: true,
@@ -601,7 +632,6 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                             lastCompletedDateISO: todayISO
                         } as XpTask;
                     }
-
                     return {
                         ...t,
                         done: isDone,

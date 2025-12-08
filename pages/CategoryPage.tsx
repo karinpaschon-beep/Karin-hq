@@ -36,8 +36,8 @@ export const CategoryPage = () => {
     const [plannerFeedback, setPlannerFeedback] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatable: boolean }>({
-        title: '', xp: 20, duration: 30, status: 'Today', repeatable: false
+    const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' }>({
+        title: '', xp: 20, duration: 30, status: 'Today'
     });
 
     const [newProject, setNewProject] = useState<{ title: string; description: string }>({
@@ -84,8 +84,8 @@ export const CategoryPage = () => {
         return false;
     }).sort((a, b) => {
         // Sort: Repeatable first, then by creation (newest first)
-        if (a.repeatable && !b.repeatable) return -1;
-        if (!a.repeatable && b.repeatable) return 1;
+        if (a.repeatFrequency && !b.repeatFrequency) return -1;
+        if (!a.repeatFrequency && b.repeatFrequency) return 1;
         return parseInt(b.id) - parseInt(a.id);
     });
 
@@ -100,10 +100,10 @@ export const CategoryPage = () => {
             durationMinutes: newTask.duration,
             status: newTask.status,
             projectId: newTask.projectId,
-            repeatable: newTask.repeatable
+            repeatFrequency: newTask.repeatFrequency
         });
         setShowTaskModal(false);
-        setNewTask({ title: '', xp: 20, duration: 30, status: 'Today', repeatable: false });
+        setNewTask({ title: '', xp: 20, duration: 30, status: 'Today' });
     };
 
     const handleAddProject = (e: React.FormEvent) => {
@@ -388,9 +388,9 @@ export const CategoryPage = () => {
                                                     <span className="text-xs text-amber-600 font-semibold flex items-center gap-1">
                                                         <Award size={12} /> {task.xp} XP
                                                     </span>
-                                                    {task.repeatable && (
-                                                        <span className="text-xs text-blue-500 flex items-center gap-1" title="Repeats Daily">
-                                                            <RotateCcw size={12} /> Daily
+                                                    {task.repeatFrequency && (
+                                                        <span className="text-xs text-blue-500 flex items-center gap-1" title={`Repeats ${task.repeatFrequency}`}>
+                                                            <RotateCcw size={12} /> {task.repeatFrequency === 'daily' ? 'Daily' : 'Weekly'}
                                                         </span>
                                                     )}
                                                 </div>
@@ -465,15 +465,16 @@ export const CategoryPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="repeatable"
-                            checked={newTask.repeatable}
-                            onChange={e => setNewTask({ ...newTask, repeatable: e.target.checked })}
-                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                        />
-                        <label htmlFor="repeatable" className="text-sm font-medium text-slate-700">Repeat Daily</label>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Repetition</label>
+                        <Select
+                            value={newTask.repeatFrequency || ''}
+                            onChange={e => setNewTask({ ...newTask, repeatFrequency: (e.target.value as 'daily' | 'weekly') || undefined })}
+                        >
+                            <option value="">One-off Task</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </Select>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-2">
