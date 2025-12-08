@@ -307,9 +307,13 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     const fireFloatingText = (text: string) => {
+        // Remove existing floating text to prevent overlap
+        const existing = document.querySelectorAll('.floating-reward-text');
+        existing.forEach(el => el.remove());
+
         const el = document.createElement('div');
         el.innerText = text;
-        el.className = 'fixed inset-0 flex items-center justify-center pointer-events-none z-[100] text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-2xl text-center whitespace-pre-line';
+        el.className = 'floating-reward-text fixed inset-0 flex items-center justify-center pointer-events-none z-[100] text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-2xl text-center whitespace-pre-line';
         el.style.textShadow = '0 10px 30px rgba(0,0,0,0.2)';
         document.body.appendChild(el);
 
