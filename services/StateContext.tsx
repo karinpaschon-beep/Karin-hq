@@ -157,10 +157,10 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             let newState = { ...prev };
             let stateChanged = false;
 
-            // 1. Monthly Shield Refill (Additive +2)
+            // 1. Monthly Shield Refill (Additive +5)
             if (newState.lastShieldRefill !== currentMonth) {
                 newState.categories.forEach(c => {
-                    newState.shields[c.id] = (newState.shields[c.id] || 0) + 2;
+                    newState.shields[c.id] = (newState.shields[c.id] || 0) + 5;
                 });
                 newState.lastShieldRefill = currentMonth;
                 stateChanged = true;
@@ -182,11 +182,16 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
                     daysToCheck.forEach(day => {
                         const checkISO = format(day, 'yyyy-MM-dd');
+                        const yesterdayISO = format(addDays(day, -1), 'yyyy-MM-dd');
+
                         newState.categories.forEach(cat => {
                             const hasCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === checkISO);
                             if (!hasCheckIn) {
-                                // Try to use shield
-                                if ((newState.shields[cat.id] || 0) > 0) {
+                                // Check if streak was active yesterday (real check-in or shield)
+                                const hasYesterdayCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === yesterdayISO);
+
+                                // Try to use shield ONLY if streak is active
+                                if (hasYesterdayCheckIn && (newState.shields[cat.id] || 0) > 0) {
                                     newState.streaks = [...newState.streaks, {
                                         id: `shield-${cat.id}-${checkISO}`,
                                         category: cat.id,
@@ -204,6 +209,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                     });
                 }
             }
+
 
             if (newState.lastVisitDate !== todayISO) {
                 newState.lastVisitDate = todayISO;
