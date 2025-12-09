@@ -13,27 +13,28 @@ interface AiResponse {
 }
 
 export const suggestProjectTasks = async (
-  title: string, 
-  category: string, 
-  currentTasks: SuggestedTask[] = [], 
-  feedback: string = ""
+  title: string,
+  category: string,
+  currentTasks: SuggestedTask[] = [],
+  feedback: string = "",
+  apiKey?: string
 ): Promise<AiResponse> => {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
+    const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!key) {
       console.warn("No API Key found for AI");
-      return { message: "API Key missing. Please check configuration.", tasks: [] };
+      return { message: "API Key missing. Please add it in Settings.", tasks: [] };
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-    
+    const ai = new GoogleGenAI({ apiKey: key });
+
     // Construct a context-aware prompt
     let prompt = `I am planning a project called '${title}' in the category '${category}'.`;
-    
+
     if (currentTasks.length > 0) {
       prompt += `\n\nCurrent Plan:\n${JSON.stringify(currentTasks)}`;
     }
-    
+
     if (feedback) {
       prompt += `\n\nUser Feedback/Request: "${feedback}"\n\nPlease adjust the plan based on this feedback.`;
     } else {
@@ -52,9 +53,9 @@ export const suggestProjectTasks = async (
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            message: { 
-              type: Type.STRING, 
-              description: "A friendly, brief message to the user explaining your suggestions or changes (e.g., 'I've broken down the writing task as requested.')" 
+            message: {
+              type: Type.STRING,
+              description: "A friendly, brief message to the user explaining your suggestions or changes (e.g., 'I've broken down the writing task as requested.')"
             },
             tasks: {
               type: Type.ARRAY,
@@ -73,7 +74,7 @@ export const suggestProjectTasks = async (
     });
 
     if (response.text) {
-        return JSON.parse(response.text) as AiResponse;
+      return JSON.parse(response.text) as AiResponse;
     }
     return { message: "I couldn't generate a response. Please try again.", tasks: [] };
   } catch (error) {

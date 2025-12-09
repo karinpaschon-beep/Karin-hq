@@ -118,6 +118,7 @@ export const INITIAL_SETTINGS = {
   spendGateEnabled: true,
   spendGateThreshold: 5,
   defaultMiniTasksByCategory: DEFAULT_MINI_TASKS,
+  geminiApiKey: '',
 };
 
 // Initial Categories for Seed

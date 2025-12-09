@@ -62,6 +62,7 @@ export interface Settings {
   spendGateEnabled: boolean;
   spendGateThreshold: number;
   defaultMiniTasksByCategory: Record<Category, string[]>;
+  geminiApiKey?: string;
 }
 
 export interface AppState {

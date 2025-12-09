@@ -228,7 +228,18 @@ export const SettingsPage = () => {
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-4 rounded-lg">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Gemini API Key (for AI Planner)</label>
+                        <Input
+                            type="password"
+                            value={settings.geminiApiKey || ''}
+                            onChange={(e) => updateSettings({ ...settings, geminiApiKey: e.target.value })}
+                            placeholder="Enter API Key..."
+                        />
+                        <p className="text-xs text-slate-400 mt-1">Required for Magic Planner features.</p>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg md:col-span-2">
                         <div className="flex items-center justify-between mb-2">
                             <label className="text-sm font-medium text-slate-700">Spending Gate</label>
                             <input

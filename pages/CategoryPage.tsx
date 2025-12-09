@@ -134,7 +134,7 @@ export const CategoryPage = () => {
         setPlannerFeedback('');
         setIsGenerating(true);
 
-        const response = await suggestProjectTasks(project.title, categoryDef.name);
+        const response = await suggestProjectTasks(project.title, categoryDef.name, [], settings.geminiApiKey);
         setSuggestedTasks(response.tasks);
         setAiMessage(response.message || "Here are some tasks to get you started!");
         setIsGenerating(false);
@@ -148,7 +148,8 @@ export const CategoryPage = () => {
             activeProject.title,
             categoryDef.name,
             suggestedTasks,
-            plannerFeedback
+            plannerFeedback,
+            settings.geminiApiKey
         );
 
         setSuggestedTasks(response.tasks);
