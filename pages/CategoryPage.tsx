@@ -127,6 +127,10 @@ export const CategoryPage = () => {
     };
 
     const openPlanner = async (project: Project) => {
+        if (!settings.geminiApiKey) {
+            alert("Please set your Gemini API Key in Settings first!");
+            return;
+        }
         setActiveProject(project);
         setShowPlannerModal(true);
         setSuggestedTasks([]);
@@ -134,6 +138,7 @@ export const CategoryPage = () => {
         setPlannerFeedback('');
         setIsGenerating(true);
 
+        console.log("Calling suggestProjectTasks with key:", settings.geminiApiKey);
         const response = await suggestProjectTasks(project.title, categoryDef.name, [], settings.geminiApiKey);
         setSuggestedTasks(response.tasks);
         setAiMessage(response.message || "Here are some tasks to get you started!");

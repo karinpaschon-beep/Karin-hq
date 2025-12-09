@@ -21,6 +21,7 @@ export const suggestProjectTasks = async (
 ): Promise<AiResponse> => {
   try {
     const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    console.log("AI Service received key:", key ? "Key present" : "Key missing");
     if (!key) {
       console.warn("No API Key found for AI");
       return { message: "API Key missing. Please add it in Settings.", tasks: [] };
