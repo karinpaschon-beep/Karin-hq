@@ -36,7 +36,7 @@ export const CategoryPage = () => {
     const [plannerFeedback, setPlannerFeedback] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' }>({
+    const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' | 'monthly' }>({
         title: '', xp: 20, duration: 30, status: 'Today'
     });
 
@@ -396,7 +396,7 @@ export const CategoryPage = () => {
                                                     </span>
                                                     {task.repeatFrequency && (
                                                         <span className="text-xs text-blue-500 flex items-center gap-1" title={`Repeats ${task.repeatFrequency}`}>
-                                                            <RotateCcw size={12} /> {task.repeatFrequency === 'daily' ? 'Daily' : 'Weekly'}
+                                                            <RotateCcw size={12} /> {task.repeatFrequency.charAt(0).toUpperCase() + task.repeatFrequency.slice(1)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -475,11 +475,12 @@ export const CategoryPage = () => {
                         <label className="block text-sm font-medium text-slate-700 mb-1">Repetition</label>
                         <Select
                             value={newTask.repeatFrequency || ''}
-                            onChange={e => setNewTask({ ...newTask, repeatFrequency: (e.target.value as 'daily' | 'weekly') || undefined })}
+                            onChange={e => setNewTask({ ...newTask, repeatFrequency: (e.target.value as 'daily' | 'weekly' | 'monthly') || undefined })}
                         >
                             <option value="">One-off Task</option>
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
                         </Select>
                     </div>
 

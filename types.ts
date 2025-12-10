@@ -41,8 +41,7 @@ export interface XpTask {
   done: boolean;
   dateISO?: string; // Optional: Only set when Done, or if specifically scheduled
   notes?: string;
-  repeatFrequency?: 'daily' | 'weekly';
-  lastCompletedDateISO?: string;
+  repeatFrequency?: 'daily' | 'weekly' | 'monthly'; // Changed from repeatable?: booleang;
 }
 
 export type LedgerSource = 'xp_post' | 'manual';

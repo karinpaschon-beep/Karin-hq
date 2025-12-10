@@ -190,117 +190,133 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
     // Logic: Refill Shields & Process Missed Days on Load
     useEffect(() => {
-        const today = new Date();
-        const todayISO = format(today, 'yyyy-MM-dd');
-        const currentMonth = format(today, 'yyyy-MM');
-
-        setState(prev => {
-            let newState = { ...prev };
-            let stateChanged = false;
-
-            // 1. Monthly Shield Refill (Additive +5)
-            if (newState.lastShieldRefill !== currentMonth) {
-                newState.categories.forEach(c => {
-                    newState.shields[c.id] = (newState.shields[c.id] || 0) + 5;
-                });
-                newState.lastShieldRefill = currentMonth;
-                stateChanged = true;
-            }
-
-            // 2. Process Missed Days (Auto-consume shields)
-            const lastVisit = parseISO(prev.lastVisitDate || todayISO);
-
-            // Only process if last visit was before today
-            if (lastVisit < startOfDay(today)) {
-                const yesterday = addDays(today, -1);
-                const checkStart = lastVisit > addDays(today, -7) ? lastVisit : addDays(today, -7);
-
-                if (checkStart <= yesterday) {
-                    const daysToCheck = eachDayOfInterval({
-                        start: checkStart,
-                        end: yesterday
-                    });
-
-                    daysToCheck.forEach(day => {
-                        const checkISO = format(day, 'yyyy-MM-dd');
-                        const yesterdayISO = format(addDays(day, -1), 'yyyy-MM-dd');
-
-                        newState.categories.forEach(cat => {
-                            const hasCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === checkISO);
-                            if (!hasCheckIn) {
-                                // Check if streak was active yesterday (real check-in or shield)
-                                const hasYesterdayCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === yesterdayISO);
-
-                                // Try to use shield ONLY if streak is active
-                                if (hasYesterdayCheckIn && (newState.shields[cat.id] || 0) > 0) {
-                                    newState.streaks = [...newState.streaks, {
-                                        id: `shield-${cat.id}-${checkISO}`,
-                                        category: cat.id,
-                                        dateISO: checkISO,
-                                        miniTaskDone: false,
-                                        isShield: true,
-                                        source: 'shield',
-                                        note: 'Saved by Streak Shield'
-                                    }];
-                                    newState.shields[cat.id]--;
-                                    stateChanged = true;
-                                }
-                            }
-                        });
-                    });
-                }
-            }
-
-
-            if (newState.lastVisitDate !== todayISO) {
-                newState.lastVisitDate = todayISO;
-                stateChanged = true;
-            }
-
-            // 3. Reset Repeatable Tasks
+        const checkAndResetTasks = () => {
+            const today = new Date();
+            const todayISO = format(today, 'yyyy-MM-dd');
+            const currentMonth = format(today, 'yyyy-MM');
             const currentWeek = getISOWeek(today);
 
-            const tasksReset = newState.tasks.map(t => {
-                if (t.done && t.repeatFrequency) {
-                    let shouldReset = false;
+            setState(prev => {
+                let newState = { ...prev };
+                let stateChanged = false;
 
-                    if (t.repeatFrequency === 'daily') {
-                        if (t.lastCompletedDateISO !== todayISO) shouldReset = true;
-                    } else if (t.repeatFrequency === 'weekly') {
-                        // Check if last completed date is in a DIFFERENT week
-                        if (t.lastCompletedDateISO) {
-                            const lastDate = parseISO(t.lastCompletedDateISO);
-                            const lastWeek = getISOWeek(lastDate);
-                            // Also check year to be safe around new year, but simplified:
-                            // If week number is different, reset.
-                            // Note: This is simple logic. Ideally check year too.
-                            // For now, assuming standard usage.
-                            if (lastWeek !== currentWeek) shouldReset = true;
-                        } else {
-                            shouldReset = true; // Should have a date if done, but safety first
-                        }
-                    }
+                // 1. Monthly Shield Refill (Additive +5)
+                if (newState.lastShieldRefill !== currentMonth) {
+                    newState.categories.forEach(c => {
+                        newState.shields[c.id] = (newState.shields[c.id] || 0) + 5;
+                    });
+                    newState.lastShieldRefill = currentMonth;
+                    stateChanged = true;
+                }
 
-                    if (shouldReset) {
-                        return {
-                            ...t,
-                            done: false,
-                            status: 'Today', // Bring it back to Today/Active
-                            dateISO: undefined
-                        } as XpTask;
+                // 2. Process Missed Days (Auto-consume shields)
+                const lastVisit = parseISO(prev.lastVisitDate || todayISO);
+
+                // Only process if last visit was before today
+                if (lastVisit < startOfDay(today)) {
+                    const yesterday = addDays(today, -1);
+                    const checkStart = lastVisit > addDays(today, -7) ? lastVisit : addDays(today, -7);
+
+                    if (checkStart <= yesterday) {
+                        const daysToCheck = eachDayOfInterval({
+                            start: checkStart,
+                            end: yesterday
+                        });
+
+                        daysToCheck.forEach(day => {
+                            const checkISO = format(day, 'yyyy-MM-dd');
+                            const yesterdayISO = format(addDays(day, -1), 'yyyy-MM-dd');
+
+                            newState.categories.forEach(cat => {
+                                const hasCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === checkISO);
+                                if (!hasCheckIn) {
+                                    // Check if streak was active yesterday (real check-in or shield)
+                                    const hasYesterdayCheckIn = newState.streaks.some(s => s.category === cat.id && s.dateISO === yesterdayISO);
+
+                                    // Try to use shield ONLY if streak is active
+                                    if (hasYesterdayCheckIn && (newState.shields[cat.id] || 0) > 0) {
+                                        newState.streaks = [...newState.streaks, {
+                                            id: `shield-${cat.id}-${checkISO}`,
+                                            category: cat.id,
+                                            dateISO: checkISO,
+                                            miniTaskDone: false,
+                                            isShield: true,
+                                            source: 'shield',
+                                            note: 'Saved by Streak Shield'
+                                        }];
+                                        newState.shields[cat.id]--;
+                                        stateChanged = true;
+                                    }
+                                }
+                            });
+                        });
                     }
                 }
-                return t;
+
+
+                if (newState.lastVisitDate !== todayISO) {
+                    newState.lastVisitDate = todayISO;
+                    stateChanged = true;
+                }
+
+                // 3. Reset Repeatable Tasks
+                const tasksReset = newState.tasks.map(t => {
+                    if (t.done && t.repeatFrequency) {
+                        let shouldReset = false;
+
+                        if (t.repeatFrequency === 'daily') {
+                            if (t.lastCompletedDateISO !== todayISO) shouldReset = true;
+                        } else if (t.repeatFrequency === 'weekly') {
+                            if (t.lastCompletedDateISO) {
+                                const lastDate = parseISO(t.lastCompletedDateISO);
+                                const lastWeek = getISOWeek(lastDate);
+                                if (lastWeek !== currentWeek) shouldReset = true;
+                            } else {
+                                shouldReset = true;
+                            }
+                        } else if (t.repeatFrequency === 'monthly') {
+                            if (t.lastCompletedDateISO) {
+                                const lastDate = parseISO(t.lastCompletedDateISO);
+                                const lastMonth = format(lastDate, 'yyyy-MM');
+                                if (lastMonth !== currentMonth) shouldReset = true;
+                            } else {
+                                shouldReset = true;
+                            }
+                        }
+
+                        if (shouldReset) {
+                            return {
+                                ...t,
+                                done: false,
+                                status: 'Today', // Bring it back to Today/Active
+                                dateISO: undefined
+                            } as XpTask;
+                        }
+                    }
+                    return t;
+                });
+
+                // Check if tasks changed
+                if (JSON.stringify(tasksReset) !== JSON.stringify(newState.tasks)) {
+                    newState.tasks = tasksReset;
+                    stateChanged = true;
+                }
+
+                return stateChanged ? newState : prev;
             });
+        };
 
-            // Check if tasks changed
-            if (JSON.stringify(tasksReset) !== JSON.stringify(newState.tasks)) {
-                newState.tasks = tasksReset;
-                stateChanged = true;
-            }
+        // Run on mount
+        checkAndResetTasks();
 
-            return stateChanged ? newState : prev;
-        });
+        // Run when window gains focus (e.g. user comes back next day)
+        const onFocus = () => {
+            console.log("App focused, checking for resets...");
+            checkAndResetTasks();
+        };
+
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
     }, []);
 
     const addNotification = (message: string) => {
