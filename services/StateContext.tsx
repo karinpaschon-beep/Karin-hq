@@ -279,25 +279,21 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                         // Check for broken streaks (if not done today, and last completion was too long ago)
                         if (newStreak > 0 && t.lastCompletedDateISO) {
                             const lastDate = parseISO(t.lastCompletedDateISO);
-                            const yesterday = addDays(today, -1);
+                            const twoDaysAgo = addDays(today, -2);
 
                             if (t.repeatFrequency === 'daily') {
-                                // If last completed was before yesterday, streak is broken
-                                if (lastDate < yesterday) newStreak = 0;
+                                // Reset if last completed was 2+ days ago (before day before yesterday)
+                                if (lastDate < twoDaysAgo) newStreak = 0;
                             } else if (t.repeatFrequency === 'weekly') {
                                 const lastWeek = getISOWeek(lastDate);
-                                // If last completed was before last week (approx check)
-                                // Better: if current week > last week + 1? 
-                                // Simple: if it's been more than 7 days since end of last week?
-                                // Let's stick to week number diff for simplicity
-                                const weekDiff = currentWeek - lastWeek; // Handle year wrap separately if needed but simple for now
+                                const weekDiff = currentWeek - lastWeek;
+                                // Reset if missed by 1+ week (week diff > 1)
                                 if (weekDiff > 1) newStreak = 0;
                             } else if (t.repeatFrequency === 'monthly') {
                                 const lastMonth = format(lastDate, 'yyyy-MM');
-                                // If last completed was before last month
-                                // Simple string compare works for ISO yyyy-MM
-                                // We need previous month string
-                                const prevMonthDate = addDays(today, -30); // Rough
+                                // Reset if missed by 1+ month
+                                const prevMonthDate = new Date(today);
+                                prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
                                 const prevMonth = format(prevMonthDate, 'yyyy-MM');
                                 if (lastMonth < prevMonth) newStreak = 0;
                             }

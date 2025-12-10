@@ -106,17 +106,24 @@ export const CategoryPage = () => {
 
         let streak = 0;
         let checkDate = new Date();
+        let missedDays = 0;
 
         for (let i = 0; i < 30; i++) { // Check last 30 days max
             const checkISO = format(checkDate, 'yyyy-MM-dd');
             if (sortedDates.includes(checkISO)) {
                 streak++;
+                missedDays = 0; // Reset missed days counter
                 checkDate = addDays(checkDate, -1);
             } else if (checkISO === today && i === 0) {
                 // Today not worked yet, check yesterday
                 checkDate = addDays(checkDate, -1);
             } else {
-                break;
+                missedDays++;
+                if (missedDays >= 2) {
+                    // Streak broken: 2+ consecutive days missed
+                    break;
+                }
+                checkDate = addDays(checkDate, -1);
             }
         }
         return streak;
