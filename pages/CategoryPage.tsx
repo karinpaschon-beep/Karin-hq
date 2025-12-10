@@ -380,16 +380,29 @@ export const CategoryPage = () => {
                                                 </button>
                                             </div>
 
-                                            {/* Linked Tasks Preview */}
-                                            <div className="space-y-2 mb-4 pl-4 border-l-2 border-slate-100">
-                                                {tasks.filter(t => t.projectId === project.id && !t.done).length === 0 && (
-                                                    <p className="text-xs text-slate-400 italic">No active tasks</p>
-                                                )}
-                                                {tasks.filter(t => t.projectId === project.id && !t.done).slice(0, 3).map(t => (
-                                                    <div key={t.id} className="text-sm flex items-center gap-2 text-slate-600">
-                                                        <Circle size={12} /> {t.title}
-                                                    </div>
-                                                ))}
+                                            {/* Project Tasks */}
+                                            <div className="mb-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Tasks</h4>
+                                                    <span className="text-xs text-slate-500">
+                                                        {tasks.filter(t => t.projectId === project.id && t.done).length} / {tasks.filter(t => t.projectId === project.id).length} completed
+                                                    </span>
+                                                </div>
+                                                <div className="space-y-2 pl-4 border-l-2 border-slate-100">
+                                                    {tasks.filter(t => t.projectId === project.id).length === 0 && (
+                                                        <p className="text-xs text-slate-400 italic">No tasks yet</p>
+                                                    )}
+                                                    {tasks.filter(t => t.projectId === project.id).map(t => (
+                                                        <div key={t.id} className="text-sm flex items-center gap-2">
+                                                            {t.done ? (
+                                                                <CheckCircle2 size={12} className="text-green-500 flex-shrink-0" />
+                                                            ) : (
+                                                                <Circle size={12} className="text-slate-300 flex-shrink-0" />
+                                                            )}
+                                                            <span className={cn("text-slate-700", t.done && "line-through text-slate-400")}>{t.title}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {/* Project Progress */}

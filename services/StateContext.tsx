@@ -474,6 +474,150 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
     const triggerConfetti = () => triggerReward('general');
 
+    const triggerProjectCompletion = (bonusXp: number) => {
+        // EPIC CELEBRATION SEQUENCE
+
+        // 1. Golden Screen Flash
+        const flash = document.createElement('div');
+        flash.className = 'fixed inset-0 z-[200] pointer-events-none';
+        flash.style.background = 'radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,215,0,0) 70%)';
+        document.body.appendChild(flash);
+        flash.animate([
+            { opacity: 0 },
+            { opacity: 1, offset: 0.1 },
+            { opacity: 0 }
+        ], { duration: 800 }).onfinish = () => flash.remove();
+
+        // 2. Massive Pig Emoji Rain (50 pigs!)
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const pig = document.createElement('div');
+                pig.innerText = '🐷';
+                pig.className = 'fixed pointer-events-none z-[150] text-5xl select-none';
+                pig.style.left = Math.random() * 100 + 'vw';
+                pig.style.top = '-100px';
+                document.body.appendChild(pig);
+
+                const duration = 2000 + Math.random() * 1000;
+                const rotation = Math.random() * 720 - 360;
+                const sway = (Math.random() - 0.5) * 200;
+
+                pig.animate([
+                    { transform: 'translateY(0) rotate(0deg) translateX(0)', opacity: 1 },
+                    { transform: `translateY(120vh) rotate(${rotation}deg) translateX(${sway}px)`, opacity: 0.8 }
+                ], { duration, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }).onfinish = () => pig.remove();
+            }, i * 50);
+        }
+
+        // 3. Applause Emoji Cascade
+        for (let i = 0; i < 30; i++) {
+            setTimeout(() => {
+                const clap = document.createElement('div');
+                clap.innerText = '👏';
+                clap.className = 'fixed pointer-events-none z-[150] text-4xl select-none';
+                clap.style.left = (20 + Math.random() * 60) + '%';
+                clap.style.top = '10%';
+                document.body.appendChild(clap);
+
+                const tx = (Math.random() - 0.5) * 400;
+                const ty = 300 + Math.random() * 400;
+
+                clap.animate([
+                    { transform: 'translate(0, 0) scale(0.5)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(1.2)`, opacity: 0 }
+                ], { duration: 1500 + Math.random() * 500, easing: 'ease-out' }).onfinish = () => clap.remove();
+            }, i * 80);
+        }
+
+        // 4. Massive Confetti Explosion (100 pieces!)
+        const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'fixed w-4 h-4 z-[140]';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            confetti.style.left = (30 + Math.random() * 40) + '%';
+            confetti.style.top = '20%';
+            document.body.appendChild(confetti);
+
+            const angle = (Math.random() - 0.5) * Math.PI;
+            const velocity = 300 + Math.random() * 400;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity + 500;
+            const rotation = Math.random() * 1080;
+
+            confetti.animate([
+                { transform: 'translate(0, 0) rotate(0deg) scale(1)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px) rotate(${rotation}deg) scale(0.5)`, opacity: 0 }
+            ], { duration: 2500 + Math.random() * 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }).onfinish = () => confetti.remove();
+        }
+
+        // 5. Giant Pulsing Trophy
+        const trophy = document.createElement('div');
+        trophy.innerText = '🏆';
+        trophy.className = 'fixed pointer-events-none z-[160] text-9xl select-none';
+        trophy.style.left = '50%';
+        trophy.style.top = '30%';
+        trophy.style.transform = 'translate(-50%, -50%)';
+        trophy.style.filter = 'drop-shadow(0 0 30px rgba(255,215,0,0.8))';
+        document.body.appendChild(trophy);
+
+        trophy.animate([
+            { transform: 'translate(-50%, -50%) scale(0) rotate(-180deg)', opacity: 0 },
+            { transform: 'translate(-50%, -50%) scale(1.3) rotate(0deg)', opacity: 1, offset: 0.3 },
+            { transform: 'translate(-50%, -50%) scale(1.1) rotate(0deg)', opacity: 1, offset: 0.5 },
+            { transform: 'translate(-50%, -50%) scale(1.2) rotate(0deg)', opacity: 1, offset: 0.7 },
+            { transform: 'translate(-50%, -50%) scale(0.8) rotate(10deg)', opacity: 0 }
+        ], { duration: 3500, easing: 'ease-in-out' }).onfinish = () => trophy.remove();
+
+        // 6. Sparkle Particles
+        for (let i = 0; i < 40; i++) {
+            setTimeout(() => {
+                const sparkle = document.createElement('div');
+                sparkle.innerText = ['✨', '⭐', '💫', '🌟'][Math.floor(Math.random() * 4)];
+                sparkle.className = 'fixed pointer-events-none z-[155] text-2xl select-none';
+                sparkle.style.left = (40 + Math.random() * 20) + '%';
+                sparkle.style.top = (25 + Math.random() * 20) + '%';
+                document.body.appendChild(sparkle);
+
+                const tx = (Math.random() - 0.5) * 300;
+                const ty = (Math.random() - 0.5) * 300;
+
+                sparkle.animate([
+                    { transform: 'translate(0, 0) scale(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(1.5) rotate(360deg)`, opacity: 0 }
+                ], { duration: 1500 + Math.random() * 1000, easing: 'ease-out' }).onfinish = () => sparkle.remove();
+            }, i * 60);
+        }
+
+        // 7. Epic Floating Text
+        setTimeout(() => {
+            const existing = document.querySelectorAll('.floating-reward-text');
+            existing.forEach(el => el.remove());
+
+            const text = document.createElement('div');
+            text.className = 'floating-reward-text fixed inset-0 flex items-center justify-center pointer-events-none z-[170] text-center';
+            text.innerHTML = `
+                <div class="space-y-2">
+                    <div class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-2xl animate-pulse">
+                        🎉 PROJECT COMPLETED! 🎉
+                    </div>
+                    <div class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
+                        +${bonusXp} BONUS XP!
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(text);
+
+            text.animate([
+                { transform: 'scale(0.3) translateY(100px)', opacity: 0 },
+                { transform: 'scale(1.2) translateY(0)', opacity: 1, offset: 0.2 },
+                { transform: 'scale(1) translateY(0)', opacity: 1, offset: 0.8 },
+                { transform: 'scale(1.3) translateY(-150px)', opacity: 0 }
+            ], { duration: 4000, easing: 'ease-out' }).onfinish = () => text.remove();
+        }, 500);
+    };
+
     // --- ACTIONS ---
 
     const addCategory = (name: string) => {
@@ -779,6 +923,34 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 // Actually let's just trigger XP reward, it overrides nicely.
                 setTimeout(() => triggerReward('xp'), 100);
                 addNotification(`+${task.xp} XP`);
+
+                // Check for project completion
+                if (task.projectId) {
+                    const projectTasks = newTasks.filter(t => t.projectId === task.projectId);
+                    const allDone = projectTasks.every(t => t.done);
+                    const project = newProjects.find(p => p.id === task.projectId);
+
+                    if (allDone && project && project.status !== 'Completed') {
+                        // Calculate bonus XP (20% of total project XP or 100, whichever is higher)
+                        const totalProjectXp = projectTasks.reduce((sum, t) => sum + t.xp, 0);
+                        const bonusXp = Math.max(100, Math.floor(totalProjectXp * 0.2));
+
+                        // Award bonus XP
+                        newPendingXp += bonusXp;
+                        newTotalXp += bonusXp;
+
+                        // Mark project as completed
+                        newProjects = newProjects.map(p =>
+                            p.id === task.projectId ? { ...p, status: 'Completed' as const } : p
+                        );
+
+                        // Trigger epic celebration
+                        setTimeout(() => {
+                            triggerProjectCompletion(bonusXp);
+                            addNotification(`🎉 Project Completed! +${bonusXp} Bonus XP!`);
+                        }, 300);
+                    }
+                }
             }
 
             return { ...prev, tasks: newTasks, streaks: newStreaks, pendingXp: newPendingXp, totalXp: newTotalXp, projects: newProjects };
