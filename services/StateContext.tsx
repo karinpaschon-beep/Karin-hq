@@ -126,6 +126,8 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
         }
         if (!migrated.lastShieldRefill) migrated.lastShieldRefill = format(new Date(), 'yyyy-MM');
         if (!migrated.lastVisitDate) migrated.lastVisitDate = format(new Date(), 'yyyy-MM-dd');
+        if (migrated.totalXp === undefined) migrated.totalXp = 0;
+        if (migrated.pendingXp === undefined) migrated.pendingXp = 0;
 
         // Ensure tasks have valid fields (make dateISO optional if missing)
         if (migrated.tasks) {
@@ -658,6 +660,17 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 return t;
             });
 
+            let newPendingXp = prev.pendingXp || 0;
+            let newTotalXp = prev.totalXp || 0;
+
+            if (isDone) {
+                newPendingXp += task.xp;
+                newTotalXp += task.xp;
+            } else {
+                newPendingXp = Math.max(0, newPendingXp - task.xp);
+                newTotalXp = Math.max(0, newTotalXp - task.xp);
+            }
+
             let newStreaks = [...prev.streaks];
             if (isDone) {
                 const hasCheckIn = newStreaks.some(s => s.category === task.category && s.dateISO === todayISO);
@@ -680,28 +693,20 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 addNotification(`+${task.xp} XP`);
             }
 
-            return { ...prev, tasks: newTasks, streaks: newStreaks };
+            return { ...prev, tasks: newTasks, streaks: newStreaks, pendingXp: newPendingXp, totalXp: newTotalXp };
         });
     };
 
     const postXpToBank = () => {
         const todayISO = format(new Date(), 'yyyy-MM-dd');
-        const xpToday = state.tasks
-            .filter(t => t.done && t.status === 'Done' && t.dateISO === todayISO)
-            .reduce((sum, t) => sum + t.xp, 0);
+        const xpToPost = state.pendingXp || 0;
 
-        if (xpToday === 0) {
-            alert("No XP earned today to post.");
+        if (xpToPost <= 0) {
+            alert("No pending XP to post.");
             return;
         }
 
-        const alreadyPosted = state.ledger.some(l => l.source === 'xp_post' && l.sourceDateISO === todayISO);
-        if (alreadyPosted) {
-            alert("XP for today has already been posted!");
-            return;
-        }
-
-        const euros = xpToday * state.settings.xpToEuroRate;
+        const euros = xpToPost * state.settings.xpToEuroRate;
 
         addLedgerEntry({
             dateISO: todayISO,
@@ -709,8 +714,10 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             euroAmount: euros,
             source: 'xp_post',
             sourceDateISO: todayISO,
-            notes: `XP Earned: ${xpToday}`
+            notes: `XP Earned: ${xpToPost}`
         });
+
+        setState(prev => ({ ...prev, pendingXp: 0 }));
         triggerReward('general');
         addNotification(`Cha-ching! +${euros.toFixed(2)}€ deposited.`);
     };

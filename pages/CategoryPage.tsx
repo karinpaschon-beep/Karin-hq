@@ -20,7 +20,7 @@ export const CategoryPage = () => {
     const { category } = useParams<{ category: string }>();
     const decodedCategory = category ? decodeURIComponent(category) : null;
 
-    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, addProject, deleteProject } = useApp();
+    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, addProject, deleteProject, totalXp, pendingXp, postXpToBank, ledger } = useApp();
 
     const categoryDef = categories.find(c => c.id === decodedCategory);
 
@@ -65,6 +65,12 @@ export const CategoryPage = () => {
     const currentWeek = getISOWeek(today);
     const quoteIndex = currentWeek % quotes.length;
     const weeklyQuote = quotes[quoteIndex];
+
+    const currentBalance = ledger.reduce((sum, entry) => {
+        if (entry.type === 'Earn') return sum + entry.euroAmount;
+        if (entry.type === 'Spend') return sum - entry.euroAmount;
+        return sum;
+    }, 0);
 
     const getHistory = () => {
         const history = [];
@@ -190,6 +196,27 @@ export const CategoryPage = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-slate-800">{categoryDef.name}</h1>
                         <p className="text-slate-500 text-sm italic mt-1 max-w-md">"{weeklyQuote}"</p>
+                    </div>
+                    <div className="flex items-center gap-4 ml-8">
+                        <div className="text-right">
+                            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total XP</p>
+                            <p className="text-2xl font-black text-slate-800">{totalXp || 0}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Bank Balance</p>
+                            <p className="text-2xl font-black text-green-600">{currentBalance.toFixed(2)}€</p>
+                        </div>
+                        <Button
+                            variant="primary"
+                            className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200"
+                            onClick={postXpToBank}
+                            disabled={!pendingXp || pendingXp <= 0}
+                        >
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="text-xs font-medium opacity-90">Post {pendingXp || 0} XP</span>
+                                <span className="text-sm font-bold">+{(pendingXp || 0) * settings.xpToEuroRate}€</span>
+                            </div>
+                        </Button>
                     </div>
                 </div>
 

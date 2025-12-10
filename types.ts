@@ -74,6 +74,8 @@ export interface AppState {
   shields: Record<Category, number>;
   lastShieldRefill: string; // yyyy-MM
   lastVisitDate: string; // yyyy-MM-dd
+  totalXp: number;
+  pendingXp: number;
 }
 
 export interface Notification {
