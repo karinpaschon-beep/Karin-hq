@@ -5,7 +5,7 @@ import { useApp } from '../services/StateContext';
 import { Category, TaskStatus, Project, XpTask } from '../types';
 import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../components/ui';
 import { format, addDays } from 'date-fns';
-import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks } from '../services/ai';
 import { getISOWeek } from 'date-fns';
@@ -406,6 +406,11 @@ export const CategoryPage = () => {
                                                     {task.repeatFrequency && (
                                                         <span className="text-xs text-blue-500 flex items-center gap-1" title={`Repeats ${task.repeatFrequency}`}>
                                                             <RotateCcw size={12} /> {task.repeatFrequency.charAt(0).toUpperCase() + task.repeatFrequency.slice(1)}
+                                                        </span>
+                                                    )}
+                                                    {(task.streak || 0) > 0 && (
+                                                        <span className="text-xs text-orange-500 font-bold flex items-center gap-1" title="Current Streak">
+                                                            <Flame size={12} fill="currentColor" /> {task.streak}
                                                         </span>
                                                     )}
                                                 </div>

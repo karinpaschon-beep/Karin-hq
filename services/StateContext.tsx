@@ -145,7 +145,8 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                     projectId: t.projectId || undefined,
                     repeatFrequency: frequency,
                     repeatable: undefined, // Cleanup old field
-                    lastCompletedDateISO: t.lastCompletedDateISO || undefined
+                    lastCompletedDateISO: t.lastCompletedDateISO || undefined,
+                    streak: t.streak || 0
                 };
             });
         }
@@ -261,39 +262,71 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                     stateChanged = true;
                 }
 
-                // 3. Reset Repeatable Tasks
+                // 3. Reset Repeatable Tasks & Check Broken Streaks
                 const tasksReset = newState.tasks.map(t => {
-                    if (t.done && t.repeatFrequency) {
-                        let shouldReset = false;
+                    let newStreak = t.streak || 0;
+                    let shouldReset = false;
 
-                        if (t.repeatFrequency === 'daily') {
-                            if (t.lastCompletedDateISO !== todayISO) shouldReset = true;
-                        } else if (t.repeatFrequency === 'weekly') {
-                            if (t.lastCompletedDateISO) {
-                                const lastDate = parseISO(t.lastCompletedDateISO);
+                    if (t.repeatFrequency) {
+                        // Check for broken streaks (if not done today, and last completion was too long ago)
+                        if (newStreak > 0 && t.lastCompletedDateISO) {
+                            const lastDate = parseISO(t.lastCompletedDateISO);
+                            const yesterday = addDays(today, -1);
+
+                            if (t.repeatFrequency === 'daily') {
+                                // If last completed was before yesterday, streak is broken
+                                if (lastDate < yesterday) newStreak = 0;
+                            } else if (t.repeatFrequency === 'weekly') {
                                 const lastWeek = getISOWeek(lastDate);
-                                if (lastWeek !== currentWeek) shouldReset = true;
-                            } else {
-                                shouldReset = true;
-                            }
-                        } else if (t.repeatFrequency === 'monthly') {
-                            if (t.lastCompletedDateISO) {
-                                const lastDate = parseISO(t.lastCompletedDateISO);
+                                // If last completed was before last week (approx check)
+                                // Better: if current week > last week + 1? 
+                                // Simple: if it's been more than 7 days since end of last week?
+                                // Let's stick to week number diff for simplicity
+                                const weekDiff = currentWeek - lastWeek; // Handle year wrap separately if needed but simple for now
+                                if (weekDiff > 1) newStreak = 0;
+                            } else if (t.repeatFrequency === 'monthly') {
                                 const lastMonth = format(lastDate, 'yyyy-MM');
-                                if (lastMonth !== currentMonth) shouldReset = true;
-                            } else {
-                                shouldReset = true;
+                                // If last completed was before last month
+                                // Simple string compare works for ISO yyyy-MM
+                                // We need previous month string
+                                const prevMonthDate = addDays(today, -30); // Rough
+                                const prevMonth = format(prevMonthDate, 'yyyy-MM');
+                                if (lastMonth < prevMonth) newStreak = 0;
                             }
                         }
 
-                        if (shouldReset) {
-                            return {
-                                ...t,
-                                done: false,
-                                status: 'Today', // Bring it back to Today/Active
-                                dateISO: undefined
-                            } as XpTask;
+                        // Reset 'Done' status if period passed
+                        if (t.done) {
+                            if (t.repeatFrequency === 'daily') {
+                                if (t.lastCompletedDateISO !== todayISO) shouldReset = true;
+                            } else if (t.repeatFrequency === 'weekly') {
+                                if (t.lastCompletedDateISO) {
+                                    const lastDate = parseISO(t.lastCompletedDateISO);
+                                    const lastWeek = getISOWeek(lastDate);
+                                    if (lastWeek !== currentWeek) shouldReset = true;
+                                } else {
+                                    shouldReset = true;
+                                }
+                            } else if (t.repeatFrequency === 'monthly') {
+                                if (t.lastCompletedDateISO) {
+                                    const lastDate = parseISO(t.lastCompletedDateISO);
+                                    const lastMonth = format(lastDate, 'yyyy-MM');
+                                    if (lastMonth !== currentMonth) shouldReset = true;
+                                } else {
+                                    shouldReset = true;
+                                }
+                            }
                         }
+                    }
+
+                    if (shouldReset || newStreak !== t.streak) {
+                        return {
+                            ...t,
+                            done: shouldReset ? false : t.done,
+                            status: shouldReset ? 'Today' : t.status,
+                            dateISO: shouldReset ? undefined : t.dateISO,
+                            streak: newStreak
+                        } as XpTask;
                     }
                     return t;
                 });
@@ -642,12 +675,45 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             const newTasks = prev.tasks.map(t => {
                 if (t.id === id) {
                     if (t.repeatFrequency && isDone) {
+                        // Calculate Streak
+                        let newStreak = t.streak || 0;
+                        const lastDate = t.lastCompletedDateISO ? parseISO(t.lastCompletedDateISO) : null;
+
+                        if (!lastDate) {
+                            newStreak = 1;
+                        } else {
+                            if (t.repeatFrequency === 'daily') {
+                                const yesterday = addDays(new Date(), -1);
+                                const yesterdayISO = format(yesterday, 'yyyy-MM-dd');
+                                if (t.lastCompletedDateISO === yesterdayISO) newStreak++;
+                                else if (t.lastCompletedDateISO !== todayISO) newStreak = 1; // Reset if gap > 1 day
+                            } else if (t.repeatFrequency === 'weekly') {
+                                const currentWeek = getISOWeek(new Date());
+                                const lastWeek = getISOWeek(lastDate);
+                                if (currentWeek === lastWeek + 1) newStreak++;
+                                else if (currentWeek > lastWeek + 1) newStreak = 1;
+                            } else if (t.repeatFrequency === 'monthly') {
+                                const currentMonth = format(new Date(), 'yyyy-MM');
+                                const lastMonth = format(lastDate, 'yyyy-MM');
+                                // Check if consecutive month (simple string check not enough, need date math)
+                                const expectedPrev = format(addDays(new Date(), -30), 'yyyy-MM'); // Approximate
+                                // Better:
+                                const d = new Date();
+                                d.setMonth(d.getMonth() - 1);
+                                const prevMonthReal = format(d, 'yyyy-MM');
+
+                                if (lastMonth === prevMonthReal) newStreak++;
+                                else if (lastMonth < prevMonthReal) newStreak = 1;
+                            }
+                        }
+
                         return {
                             ...t,
                             done: true,
                             status: 'Done',
                             dateISO: todayISO,
-                            lastCompletedDateISO: todayISO
+                            lastCompletedDateISO: todayISO,
+                            streak: newStreak
                         } as XpTask;
                     }
                     return {
