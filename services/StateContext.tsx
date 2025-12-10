@@ -597,16 +597,21 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
             const text = document.createElement('div');
             text.className = 'floating-reward-text fixed inset-0 flex items-center justify-center pointer-events-none z-[170] text-center';
-            text.innerHTML = `
-                <div class="space-y-2">
-                    <div class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-2xl animate-pulse">
-                        🎉 PROJECT COMPLETED! 🎉
-                    </div>
-                    <div class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-                        +${bonusXp} BONUS XP!
-                    </div>
-                </div>
-            `;
+
+            const container = document.createElement('div');
+            container.className = 'space-y-2';
+
+            const title = document.createElement('div');
+            title.className = 'text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 drop-shadow-2xl animate-pulse';
+            title.textContent = '🎉 PROJECT COMPLETED! 🎉';
+
+            const bonus = document.createElement('div');
+            bonus.className = 'text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500';
+            bonus.textContent = '+' + bonusXp + ' BONUS XP!';
+
+            container.appendChild(title);
+            container.appendChild(bonus);
+            text.appendChild(container);
             document.body.appendChild(text);
 
             text.animate([
