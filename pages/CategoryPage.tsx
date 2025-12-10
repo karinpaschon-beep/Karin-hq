@@ -145,7 +145,7 @@ export const CategoryPage = () => {
         setIsGenerating(true);
 
         console.log("Calling suggestProjectTasks with key:", settings.geminiApiKey);
-        const response = await suggestProjectTasks(project.title, categoryDef.name, [], settings.geminiApiKey);
+        const response = await suggestProjectTasks(project.title, categoryDef.name, [], "", settings.geminiApiKey);
         setSuggestedTasks(response.tasks);
         setAiMessage(response.message || "Here are some tasks to get you started!");
         setIsGenerating(false);
