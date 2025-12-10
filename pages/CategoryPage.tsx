@@ -97,6 +97,42 @@ export const CategoryPage = () => {
 
     const categoryProjects = projects.filter(p => p.category === decodedCategory);
 
+    // Helper: Calculate project streak
+    const calculateProjectStreak = (workDates: string[] = []) => {
+        if (workDates.length === 0) return 0;
+
+        const sortedDates = [...workDates].sort().reverse();
+        const today = format(new Date(), 'yyyy-MM-dd');
+
+        let streak = 0;
+        let checkDate = new Date();
+
+        for (let i = 0; i < 30; i++) { // Check last 30 days max
+            const checkISO = format(checkDate, 'yyyy-MM-dd');
+            if (sortedDates.includes(checkISO)) {
+                streak++;
+                checkDate = addDays(checkDate, -1);
+            } else if (checkISO === today && i === 0) {
+                // Today not worked yet, check yesterday
+                checkDate = addDays(checkDate, -1);
+            } else {
+                break;
+            }
+        }
+        return streak;
+    };
+
+    // Helper: Get last 7 days activity for project
+    const getProjectHistory = (workDates: string[] = []) => {
+        const history = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = addDays(today, -i);
+            const iso = format(date, 'yyyy-MM-dd');
+            history.push({ date, iso, worked: workDates.includes(iso) });
+        }
+        return history;
+    };
+
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();
         addTask({
@@ -354,6 +390,37 @@ export const CategoryPage = () => {
                                                         <Circle size={12} /> {t.title}
                                                     </div>
                                                 ))}
+                                            </div>
+
+                                            {/* Project Progress */}
+                                            <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        {calculateProjectStreak(project.workDates) > 0 && (
+                                                            <span className="text-xs font-bold text-orange-500 flex items-center gap-1">
+                                                                <Flame size={14} fill="currentColor" /> {calculateProjectStreak(project.workDates)} day streak
+                                                            </span>
+                                                        )}
+                                                        {calculateProjectStreak(project.workDates) === 0 && (
+                                                            <span className="text-xs text-slate-400">No activity yet</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    {getProjectHistory(project.workDates).map((day, i) => (
+                                                        <div key={day.iso} className="flex flex-col items-center gap-1">
+                                                            <span className="text-[10px] text-slate-400 font-medium">{format(day.date, 'EEE')}</span>
+                                                            <div className={cn(
+                                                                "w-6 h-6 rounded-full flex items-center justify-center border transition-all",
+                                                                day.worked
+                                                                    ? "bg-green-100 border-green-200 text-green-600"
+                                                                    : "bg-transparent border-slate-200 text-slate-300"
+                                                            )}>
+                                                                {day.worked ? <CheckCircle2 size={12} /> : <div className="w-1 h-1 rounded-full bg-slate-200"></div>}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             <div className="flex gap-2">

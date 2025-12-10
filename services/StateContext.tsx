@@ -120,6 +120,14 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             migrated.projects = [];
         }
 
+        // Initialize workDates for existing projects
+        if (migrated.projects) {
+            migrated.projects = migrated.projects.map((p: any) => ({
+                ...p,
+                workDates: p.workDates || []
+            }));
+        }
+
         if (!migrated.shields) {
             migrated.shields = {};
             migrated.categories.forEach((c: CategoryDef) => migrated.shields[c.id] = 2);
@@ -737,6 +745,20 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 newTotalXp = Math.max(0, newTotalXp - task.xp);
             }
 
+            // Track project work dates
+            let newProjects = prev.projects;
+            if (isDone && task.projectId) {
+                newProjects = prev.projects.map(p => {
+                    if (p.id === task.projectId) {
+                        const workDates = p.workDates || [];
+                        if (!workDates.includes(todayISO)) {
+                            return { ...p, workDates: [...workDates, todayISO] };
+                        }
+                    }
+                    return p;
+                });
+            }
+
             let newStreaks = [...prev.streaks];
             if (isDone) {
                 const hasCheckIn = newStreaks.some(s => s.category === task.category && s.dateISO === todayISO);
@@ -759,7 +781,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                 addNotification(`+${task.xp} XP`);
             }
 
-            return { ...prev, tasks: newTasks, streaks: newStreaks, pendingXp: newPendingXp, totalXp: newTotalXp };
+            return { ...prev, tasks: newTasks, streaks: newStreaks, pendingXp: newPendingXp, totalXp: newTotalXp, projects: newProjects };
         });
     };
 

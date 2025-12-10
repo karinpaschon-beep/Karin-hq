@@ -28,6 +28,7 @@ export interface Project {
   category: Category;
   status: 'Active' | 'Completed' | 'On Hold';
   createdAtISO: string;
+  workDates?: string[]; // ISO dates when work was done on this project
 }
 
 export interface XpTask {
