@@ -17,7 +17,8 @@ export const suggestProjectTasks = async (
   category: string,
   currentTasks: SuggestedTask[] = [],
   feedback: string = "",
-  apiKey?: string
+  apiKey?: string,
+  imageBase64?: string
 ): Promise<AiResponse> => {
   try {
     const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
@@ -31,6 +32,10 @@ export const suggestProjectTasks = async (
 
     // Construct a context-aware prompt
     let prompt = `I am planning a project called '${title}' in the category '${category}'.`;
+
+    if (imageBase64) {
+      prompt += `\n\nI've attached an image (photo, whiteboard, diagram, handwritten notes, etc.). Please analyze it carefully and extract actionable tasks from it.`;
+    }
 
     if (currentTasks.length > 0) {
       prompt += `\n\nCurrent Plan:\n${JSON.stringify(currentTasks)}`;
@@ -46,9 +51,22 @@ export const suggestProjectTasks = async (
       3. Assign realistic XP (10-50) based on effort.`;
     }
 
+    // Build contents array with optional image
+    const contents: any = imageBase64
+      ? [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageBase64
+          }
+        }
+      ]
+      : prompt;
+
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
+      model: "gemini-2.0-flash-exp",
+      contents,
       config: {
         responseMimeType: "application/json",
         responseSchema: {

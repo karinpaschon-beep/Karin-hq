@@ -5,7 +5,7 @@ import { useApp } from '../services/StateContext';
 import { Category, TaskStatus, Project, XpTask } from '../types';
 import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../components/ui';
 import { format, addDays } from 'date-fns';
-import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks } from '../services/ai';
 import { getISOWeek } from 'date-fns';
@@ -35,6 +35,8 @@ export const CategoryPage = () => {
     const [aiMessage, setAiMessage] = useState<string>('');
     const [plannerFeedback, setPlannerFeedback] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' | 'monthly' }>({
         title: '', xp: 20, duration: 30, status: 'Today'
@@ -185,6 +187,8 @@ export const CategoryPage = () => {
         setSuggestedTasks([]);
         setAiMessage("Thinking about tasks for your project...");
         setPlannerFeedback('');
+        setUploadedImage(null);
+        setImagePreview(null);
         setIsGenerating(true);
 
         console.log("Calling suggestProjectTasks with key:", settings.geminiApiKey);
@@ -192,6 +196,33 @@ export const CategoryPage = () => {
         setSuggestedTasks(response.tasks);
         setAiMessage(response.message || "Here are some tasks to get you started!");
         setIsGenerating(false);
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check file size (max 4MB)
+        if (file.size > 4 * 1024 * 1024) {
+            alert("Image too large! Please upload an image smaller than 4MB.");
+            return;
+        }
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const result = event.target?.result as string;
+            setImagePreview(result);
+            // Extract base64 data (remove data:image/...;base64, prefix)
+            const base64Data = result.split(',')[1];
+            setUploadedImage(base64Data);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const removeImage = () => {
+        setUploadedImage(null);
+        setImagePreview(null);
     };
 
     const refinePlanner = async () => {
@@ -203,7 +234,8 @@ export const CategoryPage = () => {
             categoryDef.name,
             suggestedTasks,
             plannerFeedback,
-            settings.geminiApiKey
+            settings.geminiApiKey,
+            uploadedImage || undefined
         );
 
         setSuggestedTasks(response.tasks);
@@ -664,21 +696,47 @@ export const CategoryPage = () => {
 
                     {/* Input Area */}
                     <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 bg-white">
+                        {/* Image Preview */}
+                        {imagePreview && (
+                            <div className="relative inline-block">
+                                <img src={imagePreview} alt="Upload preview" className="max-h-32 rounded-lg border border-slate-200" />
+                                <button
+                                    onClick={removeImage}
+                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
+                                    title="Remove image"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        )}
+
                         <div className="relative">
                             <Textarea
                                 value={plannerFeedback}
                                 onChange={e => setPlannerFeedback(e.target.value)}
                                 placeholder="Reply to AI... e.g., 'Make tasks smaller' or 'Add a review step'"
-                                className="pr-12 resize-none"
+                                className="pr-24 resize-none"
                                 disabled={isGenerating}
                             />
-                            <button
-                                onClick={refinePlanner}
-                                disabled={!plannerFeedback.trim() || isGenerating}
-                                className="absolute right-2 bottom-2 p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isGenerating ? <RotateCcw className="animate-spin" size={16} /> : <Send size={16} />}
-                            </button>
+                            <div className="absolute right-2 bottom-2 flex gap-1">
+                                <label className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 cursor-pointer transition-colors" title="Upload image">
+                                    <ImageIcon size={16} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                        disabled={isGenerating}
+                                    />
+                                </label>
+                                <button
+                                    onClick={refinePlanner}
+                                    disabled={(!plannerFeedback.trim() && !uploadedImage) || isGenerating}
+                                    className="p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {isGenerating ? <RotateCcw className="animate-spin" size={16} /> : <Send size={16} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex items-center justify-between">
