@@ -51,7 +51,7 @@ export const suggestProjectTasks = async (
       3. Assign realistic XP (10-50) based on effort.`;
     }
 
-    // Build contents array with optional image
+    // Build contents - use array format for images, string for text-only
     const contents: any = imageBase64
       ? [
         { text: prompt },
@@ -64,9 +64,8 @@ export const suggestProjectTasks = async (
       ]
       : prompt;
 
-    // Get the model first, then call generateContent
-    const model = await ai.models.get({ model: "gemini-1.5-flash" });
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
       contents,
       config: {
         responseMimeType: "application/json",
