@@ -9,7 +9,7 @@ import { CheckCircle2, Circle, TrendingUp, Coins, PiggyBank, ArrowRight, Wallet,
 import { Link } from 'react-router-dom';
 
 export const Dashboard = () => {
-    const { categories, streaks, tasks, ledger, settings, shields, toggleMiniTask, postXpToBank, addLedgerEntry } = useApp();
+    const { categories, streaks, tasks, ledger, settings, shields, toggleMiniTask, postXpToBank, addLedgerEntry, totalXp, pendingXp } = useApp();
     const [spendModalOpen, setSpendModalOpen] = useState(false);
     const [spendAmount, setSpendAmount] = useState('');
     const [spendNote, setSpendNote] = useState('');
@@ -117,13 +117,13 @@ export const Dashboard = () => {
                             <Coins size={28} />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 font-medium">XP Today</p>
+                            <p className="text-sm text-slate-500 font-medium">XP Stats</p>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-3xl font-bold text-slate-900">{xpEarnedToday}</span>
-                                <span className="text-sm text-slate-400">XP</span>
+                                <span className="text-3xl font-bold text-slate-900">{totalXp || 0}</span>
+                                <span className="text-sm text-slate-400">Total</span>
                             </div>
                             <div className="text-xs text-amber-600 font-medium mt-1">
-                                ≈ {(xpEarnedToday * settings.xpToEuroRate).toFixed(2)}€
+                                {pendingXp || 0} Pending (+{((pendingXp || 0) * settings.xpToEuroRate).toFixed(2)}€)
                             </div>
                         </div>
                     </div>
@@ -262,21 +262,21 @@ export const Dashboard = () => {
                         <div className="space-y-4">
                             <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-100 shadow-inner">
                                 <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-slate-500">Unposted XP:</span>
-                                    <span className="font-bold text-slate-800">{xpEarnedToday}</span>
+                                    <span className="text-slate-500">Pending XP:</span>
+                                    <span className="font-bold text-slate-800">{pendingXp || 0}</span>
                                 </div>
                                 <div className="flex justify-between text-sm mb-4">
                                     <span className="text-slate-500">Value:</span>
-                                    <span className="font-bold text-emerald-600 text-lg">+{(xpEarnedToday * settings.xpToEuroRate).toFixed(2)}€</span>
+                                    <span className="font-bold text-emerald-600 text-lg">+{((pendingXp || 0) * settings.xpToEuroRate).toFixed(2)}€</span>
                                 </div>
                                 <Button
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200 active:scale-95 transition-transform"
-                                    disabled={xpEarnedToday === 0 || postedToday}
+                                    disabled={!pendingXp || pendingXp <= 0}
                                     onClick={postXpToBank}
                                 >
-                                    {postedToday ? "Already Posted ✅" : "Post to Bank"}
+                                    Post to Bank
                                 </Button>
-                                {postedToday && <p className="text-xs text-center text-slate-400 mt-2">Come back tomorrow!</p>}
+                                {(!pendingXp || pendingXp <= 0) && <p className="text-xs text-center text-slate-400 mt-2">Earn XP to deposit!</p>}
                             </div>
 
                             <div className="border-t border-slate-100 pt-4">
