@@ -64,8 +64,9 @@ export const suggestProjectTasks = async (
       ]
       : prompt;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+    // Get the model first, then call generateContent
+    const model = ai.models.get("gemini-1.5-flash");
+    const response = await model.generateContent({
       contents,
       config: {
         responseMimeType: "application/json",
