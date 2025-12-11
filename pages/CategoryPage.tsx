@@ -5,7 +5,7 @@ import { useApp } from '../services/StateContext';
 import { Category, TaskStatus, Project, XpTask } from '../types';
 import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../components/ui';
 import { format, addDays } from 'date-fns';
-import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X, Star } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X, Star, Edit } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks } from '../services/ai';
 import { getISOWeek } from 'date-fns';
@@ -45,6 +45,9 @@ export const CategoryPage = () => {
     const [newProject, setNewProject] = useState<{ title: string; description: string }>({
         title: '', description: ''
     });
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingTask, setEditingTask] = useState<XpTask | null>(null);
 
     if (!categoryDef || !decodedCategory) {
         return <div className="p-8 text-center text-slate-500">Category not found</div>;
@@ -260,6 +263,18 @@ export const CategoryPage = () => {
 
         addTasks(tasksToAdd);
         setShowPlannerModal(false);
+    };
+
+    const openEditModal = (task: XpTask) => {
+        setEditingTask(task);
+        setShowEditModal(true);
+    };
+
+    const saveTaskEdit = () => {
+        if (!editingTask) return;
+        updateTask(editingTask);
+        setShowEditModal(false);
+        setEditingTask(null);
     };
 
     return (
@@ -546,6 +561,13 @@ export const CategoryPage = () => {
                                                     <Star size={16} fill={task.isPriority ? "currentColor" : "none"} />
                                                 </button>
                                                 <button
+                                                    onClick={() => openEditModal(task)}
+                                                    className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded"
+                                                    title="Edit task"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
                                                     onClick={() => deleteTask(task.id)}
                                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded"
                                                 >
@@ -631,6 +653,77 @@ export const CategoryPage = () => {
                         <Button type="submit">Create Task</Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Edit Task Modal */}
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Task">
+                {editingTask && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Task Title</label>
+                            <Input
+                                value={editingTask.title}
+                                onChange={e => setEditingTask({ ...editingTask, title: e.target.value })}
+                                placeholder="e.g. Write report section"
+                                autoFocus
+                            />
+                        </div>
+
+                        {categoryProjects.length > 0 && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Link to Project (Optional)</label>
+                                <Select
+                                    value={editingTask.projectId || ''}
+                                    onChange={e => setEditingTask({ ...editingTask, projectId: e.target.value || undefined })}
+                                >
+                                    <option value="">-- Independent Task --</option>
+                                    {categoryProjects.map(p => (
+                                        <option key={p.id} value={p.id}>{p.title}</option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">XP Reward</label>
+                                <Input
+                                    type="number"
+                                    value={editingTask.xp}
+                                    onChange={e => setEditingTask({ ...editingTask, xp: parseInt(e.target.value) })}
+                                    min={5}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Duration (min)</label>
+                                <Input
+                                    type="number"
+                                    value={editingTask.durationMinutes}
+                                    onChange={e => setEditingTask({ ...editingTask, durationMinutes: parseInt(e.target.value) })}
+                                    min={5}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Repetition</label>
+                            <Select
+                                value={editingTask.repeatFrequency || ''}
+                                onChange={e => setEditingTask({ ...editingTask, repeatFrequency: (e.target.value as 'daily' | 'weekly' | 'monthly') || undefined })}
+                            >
+                                <option value="">One-off Task</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </Select>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                            <Button type="button" onClick={saveTaskEdit}>Save Changes</Button>
+                        </div>
+                    </div>
+                )}
             </Modal>
 
             {/* Project Modal */}
