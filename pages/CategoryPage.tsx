@@ -5,7 +5,7 @@ import { useApp } from '../services/StateContext';
 import { Category, TaskStatus, Project, XpTask } from '../types';
 import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../components/ui';
 import { format, addDays } from 'date-fns';
-import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X, Star } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks } from '../services/ai';
 import { getISOWeek } from 'date-fns';
@@ -20,7 +20,7 @@ export const CategoryPage = () => {
     const { category } = useParams<{ category: string }>();
     const decodedCategory = category ? decodeURIComponent(category) : null;
 
-    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, addProject, deleteProject, ledger } = useApp();
+    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, ledger } = useApp();
 
     const categoryDef = categories.find(c => c.id === decodedCategory);
 
@@ -91,7 +91,9 @@ export const CategoryPage = () => {
         if (activeTab === 'Tasks') return t.status !== 'Done';
         return false;
     }).sort((a, b) => {
-        // Sort: Repeatable first, then by creation (newest first)
+        // Sort: Priority first, then Repeatable, then by creation (newest first)
+        if (a.isPriority && !b.isPriority) return -1;
+        if (!a.isPriority && b.isPriority) return 1;
         if (a.repeatFrequency && !b.repeatFrequency) return -1;
         if (!a.repeatFrequency && b.repeatFrequency) return 1;
         return parseInt(b.id) - parseInt(a.id);
@@ -508,7 +510,7 @@ export const CategoryPage = () => {
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <h3 className={cn("font-medium text-slate-800 truncate transition-all", task.done && "line-through text-slate-400")}>{task.title}</h3>
+                                                    <h3 className={cn("font-medium truncate transition-all", task.done && "line-through text-slate-400", task.isPriority && !task.done && "text-red-600")}>{task.title}</h3>
                                                     {task.projectId && (
                                                         <Badge variant="secondary" className="text-[10px] py-0 h-5">
                                                             {projects.find(p => p.id === task.projectId)?.title || "Project"}
@@ -536,6 +538,13 @@ export const CategoryPage = () => {
                                             </div>
 
                                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                                <button
+                                                    onClick={() => toggleTaskPriority(task.id)}
+                                                    className={cn("p-2 rounded transition-colors", task.isPriority ? "text-red-500 hover:text-red-600 hover:bg-red-50" : "text-slate-300 hover:text-yellow-500 hover:bg-yellow-50")}
+                                                    title={task.isPriority ? "Remove priority" : "Mark as priority"}
+                                                >
+                                                    <Star size={16} fill={task.isPriority ? "currentColor" : "none"} />
+                                                </button>
                                                 <button
                                                     onClick={() => deleteTask(task.id)}
                                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded"

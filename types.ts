@@ -44,6 +44,7 @@ export interface XpTask {
   notes?: string;
   repeatFrequency?: 'daily' | 'weekly' | 'monthly'; // Changed from repeatable?: booleang;
   streak?: number;
+  isPriority?: boolean;
 }
 
 export type LedgerSource = 'xp_post' | 'manual';

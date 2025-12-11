@@ -154,7 +154,8 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
                     repeatFrequency: frequency,
                     repeatable: undefined, // Cleanup old field
                     lastCompletedDateISO: t.lastCompletedDateISO || undefined,
-                    streak: t.streak || 0
+                    streak: t.streak || 0,
+                    isPriority: t.isPriority || false
                 };
             });
         }
@@ -993,6 +994,15 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
         }));
     };
 
+    const toggleTaskPriority = (id: string) => {
+        setState(prev => ({
+            ...prev,
+            tasks: prev.tasks.map(t =>
+                t.id === id ? { ...t, isPriority: !t.isPriority } : t
+            )
+        }));
+    };
+
     const updateSettings = (settings: Settings) => {
         setState(prev => ({ ...prev, settings }));
         addNotification("Settings saved.");
@@ -1033,7 +1043,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     return (
-        <AppContext.Provider value={{ ...state, addCategory, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, addProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
+        <AppContext.Provider value={{ ...state, addCategory, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
             {children}
         </AppContext.Provider>
     );
