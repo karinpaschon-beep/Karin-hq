@@ -281,8 +281,17 @@ export const CategoryPage = () => {
     const handleGenerateVision = async () => {
         if (!categoryDef) return;
         setIsGeneratingVision(true);
-        const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals);
-        updateCategoryGoals(categoryDef.id, plan);
+        try {
+            const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals);
+            if (plan.year10 || plan.year5 || plan.year3 || plan.year1) {
+                updateCategoryGoals(categoryDef.id, plan);
+            } else {
+                alert("Could not generate plan. Please check your API key in Settings.");
+            }
+        } catch (e) {
+            console.error("Vision generation error:", e);
+            alert("Error generating plan. Please try again.");
+        }
         setIsGeneratingVision(false);
     };
 
