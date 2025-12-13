@@ -7,7 +7,7 @@ import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../comp
 import { format, addDays } from 'date-fns';
 import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X, Star, Edit } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
-import { suggestProjectTasks } from '../services/ai';
+import { suggestProjectTasks, generateLongTermPlan } from '../services/ai';
 import { getISOWeek } from 'date-fns';
 
 interface SuggestedTaskState {
@@ -20,11 +20,11 @@ export const CategoryPage = () => {
     const { category } = useParams<{ category: string }>();
     const decodedCategory = category ? decodeURIComponent(category) : null;
 
-    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, ledger } = useApp();
+    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, updateCategoryGoals, ledger } = useApp();
 
     const categoryDef = categories.find(c => c.id === decodedCategory);
 
-    const [activeTab, setActiveTab] = useState<TaskStatus | 'Projects' | 'Tasks'>('Tasks');
+    const [activeTab, setActiveTab] = useState<TaskStatus | 'Projects' | 'Tasks' | 'Vision'>('Tasks');
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
 
@@ -37,6 +37,7 @@ export const CategoryPage = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [isGeneratingVision, setIsGeneratingVision] = useState(false);
 
     const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' | 'monthly' }>({
         title: '', xp: 20, duration: 30, status: 'Today'
@@ -277,6 +278,22 @@ export const CategoryPage = () => {
         setEditingTask(null);
     };
 
+    const handleGenerateVision = async () => {
+        if (!categoryDef) return;
+        setIsGeneratingVision(true);
+        const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals);
+        updateCategoryGoals(categoryDef.id, plan);
+        setIsGeneratingVision(false);
+    };
+
+    const handleCreateProjectFromGoal = (goal: string, timeframe: string) => {
+        setNewProject({
+            title: `${timeframe} Goal Project`,
+            description: goal
+        });
+        setShowProjectModal(true);
+    };
+
     return (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             {/* Header */}
@@ -385,7 +402,7 @@ export const CategoryPage = () => {
                     <Card className="min-h-[500px] flex flex-col border-slate-200 shadow-sm">
                         <div className="p-4 border-b border-slate-100 flex flex-wrap gap-2 items-center justify-between bg-slate-50/50 rounded-t-lg">
                             <div className="flex gap-1 bg-slate-100 p-1 rounded-lg overflow-x-auto">
-                                {(['Tasks', 'Projects', 'Done'] as const).map(tab => (
+                                {(['Tasks', 'Projects', 'Vision', 'Done'] as const).map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
@@ -402,15 +419,74 @@ export const CategoryPage = () => {
                                 <Button size="sm" onClick={() => setShowProjectModal(true)}>
                                     <Plus size={16} className="mr-1" /> New Project
                                 </Button>
-                            ) : (
+                            ) : activeTab === 'Tasks' ? (
                                 <Button size="sm" onClick={() => setShowTaskModal(true)}>
                                     <Plus size={16} className="mr-1" /> New Task
                                 </Button>
-                            )}
+                            ) : null}
                         </div>
 
                         <div className="p-0 flex-1 overflow-y-auto">
-                            {activeTab === 'Projects' ? (
+                            {activeTab === 'Vision' ? (
+                                <div className="p-6 space-y-8">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                                <Sparkles className="text-purple-500" /> Long Term Vision
+                                            </h2>
+                                            <p className="text-slate-500 text-sm mt-1">Define your future and let AI help you plan.</p>
+                                        </div>
+                                        <Button
+                                            onClick={handleGenerateVision}
+                                            disabled={isGeneratingVision}
+                                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                                        >
+                                            {isGeneratingVision ? (
+                                                <><RotateCcw className="animate-spin mr-2" /> Generating...</>
+                                            ) : (
+                                                <><Bot className="mr-2" /> Generate with AI</>
+                                            )}
+                                        </Button>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        {[
+                                            { key: 'year10', label: '10 Year Vision', desc: 'The ultimate dream.' },
+                                            { key: 'year5', label: '5 Year Milestone', desc: 'Halfway there.' },
+                                            { key: 'year3', label: '3 Year Goal', desc: 'Significant progress.' },
+                                            { key: 'year1', label: '1 Year Focus', desc: 'Immediate action.' }
+                                        ].map(period => (
+                                            <div key={period.key} className="relative group">
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                                        {period.label} <span className="text-xs font-normal text-slate-400">- {period.desc}</span>
+                                                    </label>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="text-xs text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        onClick={() => handleCreateProjectFromGoal(
+                                                            categoryDef.longTermGoals?.[period.key as keyof typeof categoryDef.longTermGoals] || '',
+                                                            period.label
+                                                        )}
+                                                    >
+                                                        <Plus size={14} className="mr-1" /> Create Project
+                                                    </Button>
+                                                </div>
+                                                <Textarea
+                                                    value={categoryDef.longTermGoals?.[period.key as keyof typeof categoryDef.longTermGoals] || ''}
+                                                    onChange={e => updateCategoryGoals(categoryDef.id, {
+                                                        ...categoryDef.longTermGoals,
+                                                        [period.key]: e.target.value
+                                                    })}
+                                                    placeholder={`What do you want to achieve in ${period.label}?`}
+                                                    className="min-h-[100px] resize-none bg-slate-50 focus:bg-white transition-all"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : activeTab === 'Projects' ? (
                                 <div className="p-4 space-y-4">
                                     {categoryProjects.length === 0 && (
                                         <div className="flex flex-col items-center justify-center h-40 text-slate-400">

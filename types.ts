@@ -7,6 +7,12 @@ export interface CategoryDef {
   icon?: string; // Icon name from Lucide
   colorTheme: string; // key of CATEGORY_STYLES
   backgroundImage?: string; // Path to background image
+  longTermGoals?: {
+    year10?: string;
+    year5?: string;
+    year3?: string;
+    year1?: string;
+  };
 }
 
 export interface StreakCheckIn {
@@ -89,6 +95,7 @@ export interface Notification {
 
 export interface AppContextType extends AppState {
   addCategory: (name: string) => void;
+  updateCategoryGoals: (categoryId: string, goals: CategoryDef['longTermGoals']) => void;
   renameCategory: (oldId: string, newName: string) => void;
   deleteCategory: (id: string) => void;
   toggleMiniTask: (category: Category, dateISO: string, note?: string) => void;

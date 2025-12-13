@@ -649,6 +649,15 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
         addNotification(`Category ${name} created`);
     };
 
+    const updateCategoryGoals = (categoryId: string, goals: CategoryDef['longTermGoals']) => {
+        setState(prev => ({
+            ...prev,
+            categories: prev.categories.map(c =>
+                c.id === categoryId ? { ...c, longTermGoals: goals } : c
+            )
+        }));
+    };
+
     const renameCategory = (oldId: string, newName: string) => {
         const newId = newName.trim();
         if (oldId === newId) return;
@@ -1043,7 +1052,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     return (
-        <AppContext.Provider value={{ ...state, addCategory, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
+        <AppContext.Provider value={{ ...state, addCategory, updateCategoryGoals, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
             {children}
         </AppContext.Provider>
     );

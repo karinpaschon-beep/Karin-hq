@@ -101,3 +101,65 @@ export const suggestProjectTasks = async (
     return { message: "Sorry, I encountered an error talking to the AI service.", tasks: [] };
   }
 };
+
+interface LongTermPlanResponse {
+  year10: string;
+  year5: string;
+  year3: string;
+  year1: string;
+}
+
+export const generateLongTermPlan = async (
+  category: string,
+  currentGoals?: { year10?: string; year5?: string; year3?: string; year1?: string },
+  feedback: string = "",
+  apiKey?: string
+): Promise<LongTermPlanResponse> => {
+  try {
+    const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!key) return { year10: "", year5: "", year3: "", year1: "" };
+
+    const ai = new GoogleGenAI({ apiKey: key });
+
+    let prompt = `I need a long-term plan for the category '${category}'.
+    Please create a cohesive vision across 4 timeframes: 10 years, 5 years, 3 years, and 1 year.
+    
+    The 10-year goal should be the ultimate vision.
+    The 5-year goal should be a major milestone halfway there.
+    The 3-year goal should be significant progress.
+    The 1-year goal should be immediate actionable focus for the next 12 months.`;
+
+    if (currentGoals) {
+      prompt += `\n\nCurrent Draft:\n${JSON.stringify(currentGoals)}`;
+    }
+
+    if (feedback) {
+      prompt += `\n\nUser Feedback/Request: "${feedback}"\n\nPlease adjust the plan based on this feedback.`;
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            year10: { type: Type.STRING, description: "10-Year Vision" },
+            year5: { type: Type.STRING, description: "5-Year Milestone" },
+            year3: { type: Type.STRING, description: "3-Year Goal" },
+            year1: { type: Type.STRING, description: "1-Year Focus" }
+          }
+        }
+      }
+    });
+
+    if (response.text) {
+      return JSON.parse(response.text) as LongTermPlanResponse;
+    }
+    return { year10: "", year5: "", year3: "", year1: "" };
+  } catch (error) {
+    console.error("AI Plan Generation Error", error);
+    return { year10: "", year5: "", year3: "", year1: "" };
+  }
+};
