@@ -284,7 +284,7 @@ export const CategoryPage = () => {
         if (!categoryDef) return;
         setIsGeneratingVision(true);
         try {
-            const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals);
+            const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals, "", settings.geminiApiKey);
             if (plan.year10 || plan.year5 || plan.year3 || plan.year1) {
                 updateCategoryGoals(categoryDef.id, plan);
             } else {
