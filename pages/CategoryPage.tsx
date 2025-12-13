@@ -20,13 +20,15 @@ export const CategoryPage = () => {
     const { category } = useParams<{ category: string }>();
     const decodedCategory = category ? decodeURIComponent(category) : null;
 
-    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, updateCategoryGoals, ledger } = useApp();
+    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, updateProject, deleteProject, updateCategoryGoals, ledger } = useApp();
 
     const categoryDef = categories.find(c => c.id === decodedCategory);
 
     const [activeTab, setActiveTab] = useState<TaskStatus | 'Projects' | 'Tasks' | 'Vision'>('Tasks');
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
+    const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     // AI Planner State
     const [showPlannerModal, setShowPlannerModal] = useState(false);
@@ -303,6 +305,18 @@ export const CategoryPage = () => {
         setShowProjectModal(true);
     };
 
+    const openEditProjectModal = (project: Project) => {
+        setEditingProject(project);
+        setShowEditProjectModal(true);
+    };
+
+    const saveProjectEdit = () => {
+        if (!editingProject) return;
+        updateProject(editingProject);
+        setShowEditProjectModal(false);
+        setEditingProject(null);
+    };
+
     return (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             {/* Header */}
@@ -512,13 +526,22 @@ export const CategoryPage = () => {
                                                     </h3>
                                                     {project.description && <p className="text-sm text-slate-500 mt-1">{project.description}</p>}
                                                 </div>
-                                                <button
-                                                    onClick={() => deleteProject(project.id)}
-                                                    className="text-slate-300 hover:text-red-500"
-                                                    title="Delete Project"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => openEditProjectModal(project)}
+                                                        className="text-slate-300 hover:text-blue-500"
+                                                        title="Edit Project"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteProject(project.id)}
+                                                        className="text-slate-300 hover:text-red-500"
+                                                        title="Delete Project"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {/* Project Tasks */}
@@ -837,6 +860,46 @@ export const CategoryPage = () => {
                         <Button type="submit">Create Project</Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Edit Project Modal */}
+            <Modal isOpen={showEditProjectModal} onClose={() => setShowEditProjectModal(false)} title="Edit Project">
+                {editingProject && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Project Title</label>
+                            <Input
+                                value={editingProject.title}
+                                onChange={e => setEditingProject({ ...editingProject, title: e.target.value })}
+                                placeholder="e.g. Website Redesign"
+                                autoFocus
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Description (Optional)</label>
+                            <Textarea
+                                value={editingProject.description || ''}
+                                onChange={e => setEditingProject({ ...editingProject, description: e.target.value })}
+                                placeholder="What is the goal of this project?"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                            <Select
+                                value={editingProject.status}
+                                onChange={e => setEditingProject({ ...editingProject, status: e.target.value as any })}
+                            >
+                                <option value="Active">Active</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
+                            </Select>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button type="button" variant="ghost" onClick={() => setShowEditProjectModal(false)}>Cancel</Button>
+                            <Button type="button" onClick={saveProjectEdit}>Save Changes</Button>
+                        </div>
+                    </div>
+                )}
             </Modal>
 
             {/* AI Planner Modal */}

@@ -721,7 +721,14 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
             ...prev,
             projects: [...prev.projects, newProject]
         }));
-        addNotification("Project created!");
+        addNotification(`Project "${project.title}" created`);
+    };
+
+    const updateProject = (project: Project) => {
+        setState(prev => ({
+            ...prev,
+            projects: prev.projects.map(p => p.id === project.id ? project : p)
+        }));
     };
 
     const deleteProject = (id: string) => {
@@ -1052,7 +1059,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     return (
-        <AppContext.Provider value={{ ...state, addCategory, updateCategoryGoals, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
+        <AppContext.Provider value={{ ...state, addCategory, updateCategoryGoals, renameCategory, deleteCategory, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, updateProject, deleteProject, generateAiTasks, postXpToBank, addLedgerEntry, updateSettings, resetData, buyShield, triggerConfetti, notifications, dismissNotification, user }}>
             {children}
         </AppContext.Provider>
     );

@@ -102,6 +102,7 @@ export interface AppContextType extends AppState {
   addTask: (task: Omit<XpTask, 'id' | 'done'>) => void;
   addTasks: (tasks: Omit<XpTask, 'id' | 'done'>[]) => void;
   addProject: (project: Omit<Project, 'id' | 'createdAtISO'>) => void;
+  updateProject: (project: Project) => void;
   deleteProject: (id: string) => void;
   generateAiTasks: (projectId: string, projectTitle: string, category: string) => Promise<void>;
   updateTask: (task: XpTask) => void;
