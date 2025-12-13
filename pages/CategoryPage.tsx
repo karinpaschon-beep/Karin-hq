@@ -40,6 +40,7 @@ export const CategoryPage = () => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isGeneratingVision, setIsGeneratingVision] = useState(false);
+    const [visionFeedback, setVisionFeedback] = useState('');
 
     const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' | 'monthly' }>({
         title: '', xp: 20, duration: 30, status: 'Today'
@@ -284,7 +285,7 @@ export const CategoryPage = () => {
         if (!categoryDef) return;
         setIsGeneratingVision(true);
         try {
-            const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals, "", settings.geminiApiKey);
+            const plan = await generateLongTermPlan(categoryDef.name, categoryDef.longTermGoals, visionFeedback, settings.geminiApiKey);
             if (plan.year10 || plan.year5 || plan.year3 || plan.year1) {
                 updateCategoryGoals(categoryDef.id, plan);
             } else {
@@ -452,24 +453,40 @@ export const CategoryPage = () => {
                         <div className="p-0 flex-1 overflow-y-auto">
                             {activeTab === 'Vision' ? (
                                 <div className="p-6 space-y-8">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <div>
-                                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                                <Sparkles className="text-purple-500" /> Long Term Vision
-                                            </h2>
-                                            <p className="text-slate-500 text-sm mt-1">Define your future and let AI help you plan.</p>
+                                    <div className="mb-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                                    <Sparkles className="text-purple-500" /> Long Term Vision
+                                                </h2>
+                                                <p className="text-slate-500 text-sm mt-1">Define your future and let AI help you plan.</p>
+                                            </div>
                                         </div>
-                                        <Button
-                                            onClick={handleGenerateVision}
-                                            disabled={isGeneratingVision}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white"
-                                        >
-                                            {isGeneratingVision ? (
-                                                <><RotateCcw className="animate-spin mr-2" /> Generating...</>
-                                            ) : (
-                                                <><Bot className="mr-2" /> Generate with AI</>
-                                            )}
-                                        </Button>
+
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                                                <Bot size={16} className="text-purple-600" /> Talk to the AI Planner
+                                            </label>
+                                            <div className="flex gap-3">
+                                                <Textarea
+                                                    value={visionFeedback}
+                                                    onChange={e => setVisionFeedback(e.target.value)}
+                                                    placeholder="Tell the AI what you want (e.g. 'Focus on sustainable growth', 'I want to retire in 10 years', 'Make it more ambitious')..."
+                                                    className="min-h-[60px] resize-none bg-white shadow-sm focus:ring-purple-500"
+                                                />
+                                                <Button
+                                                    onClick={handleGenerateVision}
+                                                    disabled={isGeneratingVision}
+                                                    className="bg-purple-600 hover:bg-purple-700 text-white h-auto px-6 shadow-md shadow-purple-200"
+                                                >
+                                                    {isGeneratingVision ? (
+                                                        <><RotateCcw className="animate-spin" /></>
+                                                    ) : (
+                                                        <><Bot className="mr-2" /> Generate</>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-8">
