@@ -163,3 +163,49 @@ export const generateLongTermPlan = async (
     return { year10: "", year5: "", year3: "", year1: "" };
   }
 };
+
+export const suggestMiniTasks = async (
+  category: string,
+  projects: string[],
+  tasks: string[],
+  vision: string,
+  apiKey?: string
+): Promise<string[]> => {
+  try {
+    const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!key) return [];
+
+    const ai = new GoogleGenAI({ apiKey: key });
+
+    let prompt = `I need 5 quick, 5-minute "mini tasks" for the category '${category}'.
+    These tasks should help maintain momentum and be easy to start.
+    
+    Context:
+    - Long Term Vision: ${vision}
+    - Active Projects: ${projects.join(", ")}
+    - Current Tasks: ${tasks.join(", ")}
+    
+    Please suggest 5 specific, actionable, 5-minute tasks.
+    Return ONLY a JSON array of strings, e.g. ["Read 1 page", "Do 5 pushups"].`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+
+    if (response.text) {
+      return JSON.parse(response.text) as string[];
+    }
+    return [];
+  } catch (error) {
+    console.error("AI Mini Task Generation Error", error);
+    return [];
+  }
+};

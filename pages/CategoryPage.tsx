@@ -7,7 +7,19 @@ import { Card, Button, Input, Badge, Modal, Select, Textarea, cn } from '../comp
 import { format, addDays } from 'date-fns';
 import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Sparkles, TrendingUp, Folder, Zap, Bot, Send, RotateCcw, Flame, Image as ImageIcon, X, Star, Edit } from 'lucide-react';
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
-import { suggestProjectTasks, generateLongTermPlan } from '../services/ai';
+import { suggestProjectTasks, generateLongTermPlan, suggestMiniTasks } from '../services/ai';
+
+// ... (existing code)
+
+const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+const [imagePreview, setImagePreview] = useState<string | null>(null);
+const [isGeneratingVision, setIsGeneratingVision] = useState(false);
+const [visionFeedback, setVisionFeedback] = useState('');
+
+// Mini Task Management
+const [showMiniTaskModal, setShowMiniTaskModal] = useState(false);
+const [isGeneratingMiniTasks, setIsGeneratingMiniTasks] = useState(false);
+const [miniTaskInput, setMiniTaskInput] = useState('');
 import { getISOWeek } from 'date-fns';
 
 interface SuggestedTaskState {
@@ -20,7 +32,7 @@ export const CategoryPage = () => {
     const { category } = useParams<{ category: string }>();
     const decodedCategory = category ? decodeURIComponent(category) : null;
 
-    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, updateProject, deleteProject, updateCategoryGoals, ledger } = useApp();
+    const { categories, streaks, tasks, projects, settings, shields, buyShield, toggleMiniTask, addTask, addTasks, updateTask, deleteTask, toggleTaskDone, toggleTaskPriority, addProject, updateProject, deleteProject, updateCategoryGoals, ledger, updateSettings } = useApp();
 
     const categoryDef = categories.find(c => c.id === decodedCategory);
 
@@ -107,6 +119,7 @@ export const CategoryPage = () => {
     });
 
     const categoryProjects = projects.filter(p => p.category === decodedCategory);
+    const categoryTasks = tasks.filter(t => t.category === decodedCategory && t.status !== 'Done');
 
     // Helper: Calculate project streak
     const calculateProjectStreak = (workDates: string[] = []) => {
@@ -318,6 +331,63 @@ export const CategoryPage = () => {
         setEditingProject(null);
     };
 
+    const handleGenerateMiniTasks = async () => {
+        if (!categoryDef) return;
+        setIsGeneratingMiniTasks(true);
+
+        const currentProjects = categoryProjects.map(p => p.title);
+        const currentTasks = categoryTasks.slice(0, 5).map(t => t.title);
+        const vision = JSON.stringify(categoryDef.longTermGoals || {});
+
+        const suggestions = await suggestMiniTasks(
+            categoryDef.name,
+            currentProjects,
+            currentTasks,
+            vision,
+            settings.geminiApiKey
+        );
+
+        if (suggestions.length > 0) {
+            const current = settings.defaultMiniTasksByCategory[decodedCategory] || [];
+            const updated = [...new Set([...current, ...suggestions])]; // Deduplicate
+            updateSettings({
+                ...settings,
+                defaultMiniTasksByCategory: {
+                    ...settings.defaultMiniTasksByCategory,
+                    [decodedCategory]: updated
+                }
+            });
+        } else {
+            alert("Could not generate tasks. Please check your API key.");
+        }
+        setIsGeneratingMiniTasks(false);
+    };
+
+    const handleAddMiniTask = () => {
+        if (!miniTaskInput.trim()) return;
+        const current = settings.defaultMiniTasksByCategory[decodedCategory] || [];
+        updateSettings({
+            ...settings,
+            defaultMiniTasksByCategory: {
+                ...settings.defaultMiniTasksByCategory,
+                [decodedCategory]: [...current, miniTaskInput.trim()]
+            }
+        });
+        setMiniTaskInput('');
+    };
+
+    const handleDeleteMiniTask = (index: number) => {
+        const current = settings.defaultMiniTasksByCategory[decodedCategory] || [];
+        const updated = current.filter((_, i) => i !== index);
+        updateSettings({
+            ...settings,
+            defaultMiniTasksByCategory: {
+                ...settings.defaultMiniTasksByCategory,
+                [decodedCategory]: updated
+            }
+        });
+    };
+
     return (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             {/* Header */}
@@ -361,8 +431,13 @@ export const CategoryPage = () => {
 
                             {miniTaskDone ? (
                                 <div className="text-center">
-                                    <div className="text-xs text-slate-500 mb-4 h-8 overflow-hidden">
-                                        {(settings.defaultMiniTasksByCategory[decodedCategory] || []).length} options available
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="text-xs text-slate-500 h-8 overflow-hidden">
+                                            {(settings.defaultMiniTasksByCategory[decodedCategory] || []).length} options available
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={() => setShowMiniTaskModal(true)} className="text-xs h-6 px-2">
+                                            Manage Options
+                                        </Button>
                                     </div>
                                     <Button
                                         className="w-full bg-green-600 hover:bg-green-700 shadow-green-200 transition-all duration-300 active:scale-95"
@@ -917,6 +992,64 @@ export const CategoryPage = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Manage Mini Tasks Modal */}
+            <Modal isOpen={showMiniTaskModal} onClose={() => setShowMiniTaskModal(false)} title="Manage Mini Tasks">
+                <div className="space-y-6">
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <h4 className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                            <Bot size={16} className="text-purple-600" /> AI Suggestions
+                        </h4>
+                        <p className="text-xs text-slate-500 mb-3">
+                            Generate quick 5-minute tasks based on your current projects and vision.
+                        </p>
+                        <Button
+                            onClick={handleGenerateMiniTasks}
+                            disabled={isGeneratingMiniTasks}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                            {isGeneratingMiniTasks ? (
+                                <><RotateCcw className="animate-spin mr-2" /> Generating...</>
+                            ) : (
+                                <><Sparkles className="mr-2" /> Generate with AI</>
+                            )}
+                        </Button>
+                    </div>
+
+                    <div>
+                        <h4 className="text-sm font-medium text-slate-700 mb-2">Current Options</h4>
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                            {(settings.defaultMiniTasksByCategory[decodedCategory] || []).map((task, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg group">
+                                    <span className="text-sm text-slate-700">{task}</span>
+                                    <button
+                                        onClick={() => handleDeleteMiniTask(idx)}
+                                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            {(settings.defaultMiniTasksByCategory[decodedCategory] || []).length === 0 && (
+                                <p className="text-sm text-slate-400 text-center py-4">No mini tasks defined.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100">
+                        <h4 className="text-sm font-medium text-slate-700 mb-2">Add Manually</h4>
+                        <div className="flex gap-2">
+                            <Input
+                                value={miniTaskInput}
+                                onChange={e => setMiniTaskInput(e.target.value)}
+                                placeholder="e.g. Drink water"
+                                onKeyDown={e => e.key === 'Enter' && handleAddMiniTask()}
+                            />
+                            <Button onClick={handleAddMiniTask}>Add</Button>
+                        </div>
+                    </div>
+                </div>
             </Modal>
 
             {/* AI Planner Modal */}
