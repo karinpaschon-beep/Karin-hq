@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+// import App from './App';
 
 console.log('React Version:', React.version);
 console.log('Index.tsx executing...');
@@ -13,5 +13,8 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <App />
+  <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
+    <h1>Debug Mode</h1>
+    <p>React is working. Version: {React.version}</p>
+  </div>
 );
