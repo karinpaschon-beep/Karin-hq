@@ -13,13 +13,13 @@ export const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) =
   // Get dynamic categories from context
   let notifications: any[] = [];
   let categories: any[] = [];
-  try {
-    const app = useApp();
-    notifications = app.notifications;
-    categories = app.categories;
-  } catch (e) {
-    // ignore
-  }
+  // try {
+  //   const app = useApp();
+  //   notifications = app.notifications;
+  //   categories = app.categories;
+  // } catch (e) {
+  //   // ignore
+  // }
 
   // Determine background image
   let backgroundImage = '/bg-dashboard.png'; // Default
