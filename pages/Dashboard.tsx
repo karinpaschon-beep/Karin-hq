@@ -5,7 +5,7 @@ import { format, addDays } from 'date-fns';
 import { Category } from '../types';
 import { CATEGORY_QUOTES, THEME_STYLES, ICON_MAP } from '../constants';
 import { Card, Button, Badge, Modal, Input, cn } from '../components/ui';
-import { CheckCircle2, Circle, TrendingUp, Coins, PiggyBank, ArrowRight, Wallet, Shield, Sparkles } from 'lucide-react';
+import { CheckCircle2, Circle, TrendingUp, Coins, ArrowRight, Wallet, Shield, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Dashboard = () => {
@@ -131,9 +131,7 @@ export const Dashboard = () => {
 
                 <Card className="p-6 bg-white/80 backdrop-blur border-emerald-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl shadow-inner">
-                            <PiggyBank size={28} />
-                        </div>
+
                         <div>
                             <p className="text-sm text-slate-500 font-medium">Bank Balance</p>
                             <div className="flex items-baseline gap-2">
