@@ -9,13 +9,13 @@ import { LoginPage } from './pages/LoginPage';
 
 const App = () => {
   return (
-    // <AppProvider>
-    <HashRouter>
-      <div className="p-10">
-        <h1 className="text-xl font-bold">Router is working</h1>
-        <p>If you see this, the crash is in AppProvider (StateContext).</p>
-      </div>
-      {/*
+    <AppProvider>
+      <HashRouter>
+        <div className="p-10">
+          <h1 className="text-xl font-bold">Router is working</h1>
+          <p>If you see this, the crash is in AppProvider (StateContext).</p>
+        </div>
+        {/*
         <Layout>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -26,8 +26,8 @@ const App = () => {
           </Routes>
         </Layout>
         */}
-    </HashRouter>
-    // </AppProvider>
+      </HashRouter>
+    </AppProvider>
   );
 };
 
