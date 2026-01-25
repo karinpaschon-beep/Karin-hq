@@ -8,6 +8,14 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 
 const App = () => {
+  console.log("App rendering...");
+  return (
+    <div className="p-10">
+      <h1 className="text-2xl font-bold">App Component Loaded</h1>
+      <p>If you see this, the crash is inside the Providers or Router.</p>
+    </div>
+  );
+  /*
   return (
     <AppProvider>
       <HashRouter>
@@ -23,6 +31,7 @@ const App = () => {
       </HashRouter>
     </AppProvider>
   );
+  */
 };
 
 export default App;
