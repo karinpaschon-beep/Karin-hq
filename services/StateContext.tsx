@@ -388,16 +388,39 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     const fireEmojiBurst = (emojis: string[]) => {
-        // Simplified for brevity/safety
-        console.log("Firing emoji burst", emojis);
+        const container = document.createElement('div');
+        container.className = 'fixed inset-0 pointer-events-none z-[9999] overflow-hidden';
+        document.body.appendChild(container);
+
+        for (let i = 0; i < 15; i++) {
+            const el = document.createElement('div');
+            el.className = 'absolute text-4xl animate-out fade-out slide-out-to-top-20 duration-1000';
+            el.style.left = `${Math.random() * 100}%`;
+            el.style.top = `${Math.random() * 100}%`;
+            el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            container.appendChild(el);
+        }
+
+        setTimeout(() => document.body.removeChild(container), 2000);
     };
 
     const fireFloatingText = (text: string) => {
-        console.log("Firing floating text", text);
+        const el = document.createElement('div');
+        el.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-primary z-[9999] animate-in zoom-in fade-in duration-500 pointer-events-none drop-shadow-lg';
+        el.style.whiteSpace = 'pre-line';
+        el.style.textAlign = 'center';
+        el.textContent = text;
+        document.body.appendChild(el);
+
+        setTimeout(() => {
+            el.className += ' animate-out zoom-out fade-out duration-500';
+            setTimeout(() => document.body.removeChild(el), 500);
+        }, 1500);
     };
 
     const fireConfetti = () => {
-        console.log("Firing confetti");
+        // Fallback to emoji burst if canvas-confetti is not available
+        fireEmojiBurst(['🎉', '🎊', '✨', '⭐', '🎈']);
     };
 
     const triggerConfetti = () => triggerReward('general');
@@ -433,8 +456,25 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     const renameCategory = (oldId: string, newName: string) => {
-        // Simplified
-        console.log("Renaming category", oldId, newName);
+        const newId = newName.trim();
+        if (state.categories.find(c => c.id === newId) && oldId !== newId) return;
+
+        setState(prev => ({
+            ...prev,
+            categories: prev.categories.map(c => c.id === oldId ? { ...c, id: newId, name: newName } : c),
+            tasks: prev.tasks.map(t => t.category === oldId ? { ...t, category: newId } : t),
+            streaks: prev.streaks.map(s => s.category === oldId ? { ...s, category: newId } : s),
+            shields: Object.fromEntries(
+                Object.entries(prev.shields).map(([id, val]) => [id === oldId ? newId : id, val])
+            ),
+            settings: {
+                ...prev.settings,
+                defaultMiniTasksByCategory: Object.fromEntries(
+                    Object.entries(prev.settings.defaultMiniTasksByCategory).map(([id, val]) => [id === oldId ? newId : id, val])
+                )
+            }
+        }));
+        addNotification(`Category renamed to ${newName}`);
     };
 
     const deleteCategory = (id: string) => {
@@ -463,8 +503,28 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
 
     const toggleMiniTask = (category: Category, dateISO: string, note?: string) => {
         setState(prev => {
-            // Simplified logic
-            return prev;
+            const existing = prev.streaks.find(s => s.category === category && s.dateISO === dateISO);
+            let newStreaks = [...prev.streaks];
+
+            if (existing) {
+                if (existing.source === 'xp') {
+                    addNotification("This day is already completed via XP tasks!");
+                    return prev;
+                }
+                newStreaks = prev.streaks.filter(s => s.id !== existing.id);
+            } else {
+                newStreaks.push({
+                    id: Date.now().toString(),
+                    category,
+                    dateISO,
+                    miniTaskDone: true,
+                    note,
+                    source: 'mini'
+                });
+                triggerReward('streak');
+            }
+
+            return { ...prev, streaks: newStreaks };
         });
     };
 
@@ -489,18 +549,90 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     const toggleTaskDone = (id: string) => {
+        const todayISO = format(new Date(), 'yyyy-MM-dd');
+
         setState(prev => {
             const task = prev.tasks.find(t => t.id === id);
             if (!task) return prev;
+
+            const isNowDone = !task.done;
+            const xpDiff = isNowDone ? task.xp : -task.xp;
+
+            // 1. Update Tasks
+            const newTasks = prev.tasks.map(t => {
+                if (t.id === id) {
+                    return {
+                        ...t,
+                        done: isNowDone,
+                        dateISO: isNowDone ? todayISO : undefined,
+                        lastCompletedDateISO: isNowDone ? todayISO : t.lastCompletedDateISO,
+                        streak: isNowDone ? (t.streak || 0) + 1 : Math.max(0, (t.streak || 0) - 1)
+                    };
+                }
+                return t;
+            });
+
+            // 2. Update Streaks (Auto-extend category streak)
+            let newStreaks = [...prev.streaks];
+            if (isNowDone) {
+                const hasStreakToday = prev.streaks.some(s => s.category === task.category && s.dateISO === todayISO);
+                if (!hasStreakToday) {
+                    newStreaks.push({
+                        id: `xp-${task.id}-${Date.now()}`,
+                        category: task.category,
+                        dateISO: todayISO,
+                        miniTaskDone: true,
+                        source: 'xp',
+                        note: `Completed: ${task.title}`
+                    });
+                }
+            }
+
+            // 3. Update Projects
+            let newProjects = [...prev.projects];
+            if (task.projectId && isNowDone) {
+                newProjects = prev.projects.map(p => {
+                    if (p.id === task.projectId) {
+                        const workDates = p.workDates || [];
+                        if (!workDates.includes(todayISO)) {
+                            return { ...p, workDates: [...workDates, todayISO] };
+                        }
+                    }
+                    return p;
+                });
+            }
+
+            if (isNowDone) triggerReward('xp');
+
             return {
                 ...prev,
-                tasks: prev.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t)
+                tasks: newTasks,
+                streaks: newStreaks,
+                projects: newProjects,
+                pendingXp: prev.pendingXp + xpDiff,
+                totalXp: prev.totalXp + xpDiff
             };
         });
     };
 
     const postXpToBank = () => {
-        console.log("Posting XP");
+        if (state.pendingXp <= 0) return;
+
+        const euroAmount = state.pendingXp * state.settings.xpToEuroRate;
+        const todayISO = format(new Date(), 'yyyy-MM-dd');
+
+        addLedgerEntry({
+            dateISO: todayISO,
+            type: 'Earn',
+            euroAmount,
+            source: 'xp_post',
+            sourceDateISO: todayISO,
+            notes: `XP Deposit (${state.pendingXp} XP)`
+        });
+
+        setState(prev => ({ ...prev, pendingXp: 0 }));
+        addNotification(`Deposited ${euroAmount.toFixed(2)}€ to bank!`);
+        triggerConfetti();
     };
 
     const addLedgerEntry = (entry: Omit<RewardLedgerEntry, 'id'>) => {
@@ -520,7 +652,23 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({ children
     };
 
     const buyShield = (category: Category) => {
-        console.log("Buying shield");
+        const cost = 50;
+        if (state.totalXp < cost) {
+            alert("Not enough XP! (Need 50 XP)");
+            return;
+        }
+
+        setState(prev => ({
+            ...prev,
+            totalXp: prev.totalXp - cost,
+            shields: {
+                ...prev.shields,
+                [category]: (prev.shields[category] || 0) + 1
+            }
+        }));
+
+        addNotification("Streak Shield Purchased!");
+        triggerReward('shield');
     };
 
     return (
