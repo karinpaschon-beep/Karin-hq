@@ -1,5 +1,6 @@
 
-import React, { useState, useRef } from 'react';
+import * as React from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../services/StateContext';
 import { Card, Button, Input, Select, Badge, Textarea } from '../components/ui';
 import { Category } from '../types';
