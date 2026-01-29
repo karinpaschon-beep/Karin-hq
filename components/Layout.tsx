@@ -1,20 +1,11 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
 
 export const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  console.log("DebugLayout rendering");
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  console.log("DebugLayout hooks passed", location.pathname);
-
+  console.log("Pure Layout rendering");
   return (
-    <div className="p-4">
-      <h1>Debug Layout V2 - Force Push</h1>
-      <p>Sidebar: {isSidebarOpen ? 'Open' : 'Closed'}</p>
-      <button onClick={() => setSidebarOpen(!isSidebarOpen)}>Toggle</button>
-      <div className="mt-4 border p-4">
-        {children}
-      </div>
+    <div className="p-4 border-4 border-green-500">
+      <h1>Pure Layout (No Hooks)</h1>
+      {children}
     </div>
   );
 };
