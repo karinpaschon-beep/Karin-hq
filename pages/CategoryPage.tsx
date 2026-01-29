@@ -10,17 +10,6 @@ import { CheckCircle2, Circle, Plus, Trash2, Clock, Award, Calendar, Shield, Spa
 import { THEME_STYLES, ICON_MAP, CATEGORY_QUOTES, getQuoteCategory } from '../constants';
 import { suggestProjectTasks, generateLongTermPlan, suggestMiniTasks } from '../services/ai';
 
-// ... (existing code)
-
-const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-const [imagePreview, setImagePreview] = useState<string | null>(null);
-const [isGeneratingVision, setIsGeneratingVision] = useState(false);
-const [visionFeedback, setVisionFeedback] = useState('');
-
-// Mini Task Management
-const [showMiniTaskModal, setShowMiniTaskModal] = useState(false);
-const [isGeneratingMiniTasks, setIsGeneratingMiniTasks] = useState(false);
-const [miniTaskInput, setMiniTaskInput] = useState('');
 import { getISOWeek } from 'date-fns';
 
 interface SuggestedTaskState {
@@ -54,6 +43,9 @@ export const CategoryPage = () => {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isGeneratingVision, setIsGeneratingVision] = useState(false);
     const [visionFeedback, setVisionFeedback] = useState('');
+    const [showMiniTaskModal, setShowMiniTaskModal] = useState(false);
+    const [isGeneratingMiniTasks, setIsGeneratingMiniTasks] = useState(false);
+    const [miniTaskInput, setMiniTaskInput] = useState('');
 
     const [newTask, setNewTask] = useState<{ title: string; xp: number; duration: number; status: TaskStatus; projectId?: string; repeatFrequency?: 'daily' | 'weekly' | 'monthly' }>({
         title: '', xp: 20, duration: 30, status: 'Today'
