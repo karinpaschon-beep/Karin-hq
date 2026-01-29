@@ -49,6 +49,7 @@ export interface XpTask {
   dateISO?: string; // Optional: Only set when Done, or if specifically scheduled
   notes?: string;
   repeatFrequency?: 'daily' | 'weekly' | 'monthly'; // Changed from repeatable?: booleang;
+  lastCompletedDateISO?: string;
   streak?: number;
   isPriority?: boolean;
 }
@@ -108,6 +109,7 @@ export interface AppContextType extends AppState {
   updateTask: (task: XpTask) => void;
   deleteTask: (id: string) => void;
   toggleTaskDone: (id: string) => void;
+  toggleTaskPriority: (id: string) => void;
   postXpToBank: () => void;
   addLedgerEntry: (entry: Omit<RewardLedgerEntry, 'id'>) => void;
   updateSettings: (settings: Settings) => void;

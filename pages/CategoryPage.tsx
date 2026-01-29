@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../services/StateContext';
 import { Category, TaskStatus, Project, XpTask } from '../types';

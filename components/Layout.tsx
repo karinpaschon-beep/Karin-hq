@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Settings as SettingsIcon, CheckCircle2 } from 'lucide-react';
 import { ICON_MAP } from '../constants';

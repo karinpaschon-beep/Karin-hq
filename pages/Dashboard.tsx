@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../services/StateContext';
 import { format, addDays } from 'date-fns';
 import { Category } from '../types';
