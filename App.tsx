@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { HashRouter } from 'react-router-dom';
 import { AppProvider } from './services/StateContext';
 import { Layout } from './components/Layout';
 
@@ -23,9 +24,11 @@ const App = () => {
   console.log("App rendering");
   return (
     <AppProvider>
-      <Layout>
-        <TestHookComponent />
-      </Layout>
+      <HashRouter>
+        <Layout>
+          <TestHookComponent />
+        </Layout>
+      </HashRouter>
     </AppProvider>
   );
 };
