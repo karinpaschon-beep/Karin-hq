@@ -9,7 +9,7 @@ export const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) =
 
   return (
     <div className="p-4">
-      <h1>Debug Layout</h1>
+      <h1>Debug Layout V2 - Force Push</h1>
       <p>Sidebar: {isSidebarOpen ? 'Open' : 'Closed'}</p>
       <button onClick={() => setSidebarOpen(!isSidebarOpen)}>Toggle</button>
       <div className="mt-4 border p-4">
