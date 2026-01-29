@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AppProvider } from './services/StateContext';
+import { Layout } from './components/Layout';
 
 const TestHookComponent = () => {
   console.log("TestHookComponent rendering");
@@ -22,7 +23,9 @@ const App = () => {
   console.log("App rendering");
   return (
     <AppProvider>
-      <TestHookComponent />
+      <Layout>
+        <TestHookComponent />
+      </Layout>
     </AppProvider>
   );
 };
